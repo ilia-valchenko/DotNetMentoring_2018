@@ -1,0 +1,6 @@
+c:\users\ilya_valchanka\documents\visual studio 2015\Projects\TaskMultithreading\Task3\bin\Debug\Task3.exe.config
+c:\users\ilya_valchanka\documents\visual studio 2015\Projects\TaskMultithreading\Task3\bin\Debug\Task3.exe
+c:\users\ilya_valchanka\documents\visual studio 2015\Projects\TaskMultithreading\Task3\bin\Debug\Task3.pdb
+c:\users\ilya_valchanka\documents\visual studio 2015\Projects\TaskMultithreading\Task3\obj\Debug\Task3.csprojResolveAssemblyReference.cache
+c:\users\ilya_valchanka\documents\visual studio 2015\Projects\TaskMultithreading\Task3\obj\Debug\Task3.exe
+c:\users\ilya_valchanka\documents\visual studio 2015\Projects\TaskMultithreading\Task3\obj\Debug\Task3.pdb
