@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using MathHelperLibrary;
+using InfrastructureLibrary;
 
 namespace Task2
 {
@@ -23,7 +24,7 @@ namespace Task2
                 var randomIntegers = MathHelper.GenerateRandomIntegers(MinRandomValue, MaxRandomValue, CountOfRandomIntegers);
 
                 Console.WriteLine("Generated random integers:");
-                PrintArray(randomIntegers);
+                Infrastructure.PrintElementsOfCollection<int>(randomIntegers);
 
                 return randomIntegers;
             });
@@ -38,7 +39,7 @@ namespace Task2
                     MultipleEachElementOfIntegerArrayBy(data.Result, multiplikator);
 
                     Console.WriteLine("The result of multiplication:");
-                    PrintArray(data.Result);
+                    Infrastructure.PrintElementsOfCollection<int>(data.Result);
 
                     return data.Result;
                 })
@@ -47,7 +48,7 @@ namespace Task2
                 Array.Sort(data.Result);
 
                 Console.WriteLine("Sorted array:");
-                PrintArray(data.Result);
+                Infrastructure.PrintElementsOfCollection<int>(data.Result);
 
                 return data.Result;
             })
@@ -79,20 +80,6 @@ namespace Task2
             for(int i = 0; i < array.Length; i++)
             {
                 array[i] *= multiplikator;
-            }
-        }
-
-        private static void PrintArray(int[] array)
-        {
-            if(array.Length == 0)
-            {
-                Console.WriteLine("Array is empty.");
-            }
-            else
-            {
-                var sb = new StringBuilder();
-                Array.ForEach(array, x => sb.Append($"{x} "));
-                Console.WriteLine(sb.ToString());
             }
         }
     }

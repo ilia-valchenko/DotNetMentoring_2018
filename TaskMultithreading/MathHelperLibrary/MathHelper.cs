@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Task2
+namespace MathHelperLibrary
 {
     public static class MathHelper
     {
