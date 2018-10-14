@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathHelperLibrary", "MathHe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfrastructureLibrary", "InfrastructureLibrary\InfrastructureLibrary.csproj", "{75787565-B752-40B8-8DA2-25C42DC928BF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Task7", "Task7\Task7.csproj", "{6AEECD0C-932A-4797-A8A4-C78B452FD7FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{75787565-B752-40B8-8DA2-25C42DC928BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75787565-B752-40B8-8DA2-25C42DC928BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{75787565-B752-40B8-8DA2-25C42DC928BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6AEECD0C-932A-4797-A8A4-C78B452FD7FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AEECD0C-932A-4797-A8A4-C78B452FD7FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6AEECD0C-932A-4797-A8A4-C78B452FD7FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AEECD0C-932A-4797-A8A4-C78B452FD7FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
