@@ -9,7 +9,7 @@ namespace Task3
 {
     class Program
     {
-        private static object lockObject = new object();
+        private static readonly object lockObject = new object();
         private static List<Product> products;
         private static ShoppingCart shoppingCart;
         private static bool exit;
@@ -65,9 +65,9 @@ namespace Task3
             }
         }
 
-        private static async Task<Command> ReadInputCommandAsync()
+        private static Task<Command> ReadInputCommandAsync()
         {
-            return await Task<Command>.Run(() => {
+            return Task.Run(() => {
                 string input = Console.ReadLine();
                 var words = input.Split(' ');
                 int id = 0;
@@ -170,9 +170,9 @@ namespace Task3
             };
         }
 
-        private static async Task AddItemToShoppingCartAsync(int productId)
+        private static Task AddItemToShoppingCartAsync(int productId)
         {
-            await Task.Run(() => {
+            return Task.Run(() => {
                 Thread.Sleep(500);
 
                 var product = products.FirstOrDefault(p => p.Id == productId);
@@ -207,9 +207,9 @@ namespace Task3
             });
         }
 
-        private static async Task<double> CalculateTotalAmountAsync()
+        private static Task<double> CalculateTotalAmountAsync()
         {
-            return await Task<double>.Run(() => {
+            return Task.Run(() => {
                 Thread.Sleep(1000);
 
                 double totalAmount = 0;
@@ -223,9 +223,9 @@ namespace Task3
             });
         }
 
-        private static async Task RemoveItemFromShoppingCartAsync(int productId)
+        private static Task RemoveItemFromShoppingCartAsync(int productId)
         {
-            await Task.Run(() => {
+            return Task.Run(() => {
                 Thread.Sleep(500);
 
                 var cartItem = shoppingCart.Items.FirstOrDefault(i => i.Product.Id == productId);
@@ -266,9 +266,9 @@ namespace Task3
             Console.WriteLine(sb.ToString());
         }
 
-        private static async Task ClearShoppingCartAsync()
+        private static Task ClearShoppingCartAsync()
         {
-            await Task.Run(() => {
+            return Task.Run(() => {
                 Thread.Sleep(500);
                 shoppingCart.Items.Clear();
             });
