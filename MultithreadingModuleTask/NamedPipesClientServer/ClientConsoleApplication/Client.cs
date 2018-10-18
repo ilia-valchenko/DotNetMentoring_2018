@@ -8,6 +8,7 @@ namespace ClientConsoleApplication
     public class Client
     {
         private const int ConnectionTimeout = 5000;
+        private const string StopReadingMessagesCommand = "StopReadingMessagesCommand";
         private NamedPipeClientStream pipeClient;
 
         public string ClientName { get; set; }
@@ -51,6 +52,28 @@ namespace ClientConsoleApplication
             if(this.pipeClient != null)
             {
                 pipeClient.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Receives messages from a server while none of them are not equal
+        /// to stop command.
+        /// </summary>
+        /// <returns>Returns the list of received messages.</returns>
+        public List<string> GetHistoryOfMessagesFromServer()
+        {
+            using (var streamReader = new StreamReader(this.pipeClient))
+            {
+                var messages = new List<string>();
+                string receivedMessage = streamReader.ReadLine();
+
+                while(receivedMessage != StopReadingMessagesCommand)
+                {
+                    messages.Add(receivedMessage);
+                    receivedMessage = streamReader.ReadLine();
+                }
+
+                return messages;
             }
         }
     }

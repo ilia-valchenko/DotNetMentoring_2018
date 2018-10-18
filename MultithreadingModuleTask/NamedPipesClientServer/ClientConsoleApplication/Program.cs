@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.IO.Pipes;
 using System.Collections.Generic;
 
 namespace ClientConsoleApplication
@@ -9,14 +7,24 @@ namespace ClientConsoleApplication
     {
         private const string PipeName = "TestPipeName";
         private const string StopCommand = "stop";
+        private const int NumberOfSendingMessages = 5;
 
         static void Main(string[] args)
         {
             foreach(var client in CreateClients())
             {
                 client.ConnectToServer(PipeName);
-                client.SendMessagesToServer(5);
-                client.DisconnectFromServer();
+                var historyOfMessages = client.GetHistoryOfMessagesFromServer();
+
+                Console.WriteLine("[CLIENT]: Get history of messages from the server.");
+
+                for(int i = 0; i < historyOfMessages.Count - 1; i++)
+                {
+                    Console.WriteLine($"[CLIENT]: #{i + 1} - {historyOfMessages[i]}");
+                }
+
+                //client.SendMessagesToServer(NumberOfSendingMessages);
+                //client.DisconnectFromServer();
             }
 
             Console.WriteLine("\n\nTap to continue...");
