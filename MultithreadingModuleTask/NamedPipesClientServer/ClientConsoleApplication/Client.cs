@@ -21,7 +21,7 @@ namespace ClientConsoleApplication
 
         public void ConnectToServer(string serverName)
         {
-            this.pipeClient = new NamedPipeClientStream(serverName);
+            this.pipeClient = new NamedPipeClientStream("FakePipeName", serverName, PipeDirection.InOut);
             pipeClient.Connect(ConnectionTimeout);
         }
 

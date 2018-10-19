@@ -27,7 +27,7 @@ namespace ClientConsoleApplication
                 //client.DisconnectFromServer();
             }
 
-            Console.WriteLine("\n\nTap to continue...");
+            Console.WriteLine("\n\nTap to close the window...");
             Console.ReadKey();
         }
 

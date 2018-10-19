@@ -1,4 +1,6 @@
-﻿namespace ServerConsoleApplication
+﻿using System;
+
+namespace ServerConsoleApplication
 {
     class Program
     {
@@ -9,6 +11,9 @@
         {
             var server = new Server(PipeName);
             server.Start();
+
+            Console.WriteLine("\n\nTap to close the window...");
+            Console.ReadKey();
         }
     }
 }
