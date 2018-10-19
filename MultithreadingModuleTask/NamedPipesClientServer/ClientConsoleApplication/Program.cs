@@ -11,20 +11,32 @@ namespace ClientConsoleApplication
 
         static void Main(string[] args)
         {
-            foreach(var client in CreateClients())
+            var clients = CreateClients();
+
+            for(int i = 0; i < clients.Count; i++)
             {
-                client.ConnectToServer(PipeName);
-                var historyOfMessages = client.GetHistoryOfMessagesFromServer();
+                Console.WriteLine("[CLIENT]: Client started.");
 
-                Console.WriteLine("[CLIENT]: Get history of messages from the server.");
+                clients[i].ConnectToServer(PipeName);
 
-                for(int i = 0; i < historyOfMessages.Count - 1; i++)
+                Console.WriteLine("[CLIENT] Connected to the server.");
+
+                // First client don't want to read the history of messages from
+                // the server. It still has empty.
+                if (i != 0)
                 {
-                    Console.WriteLine($"[CLIENT]: #{i + 1} - {historyOfMessages[i]}");
+                    var historyOfMessages = clients[i].GetHistoryOfMessagesFromServer();
+
+                    Console.WriteLine("[CLIENT]: Get history of messages from the server.");
+
+                    for (int j = 0; j < historyOfMessages.Count - j; i++)
+                    {
+                        Console.WriteLine($"[CLIENT]: #{j + 1} - {historyOfMessages[j]}");
+                    }
                 }
 
-                //client.SendMessagesToServer(NumberOfSendingMessages);
-                //client.DisconnectFromServer();
+                clients[i].SendMessagesToServer(NumberOfSendingMessages);
+                clients[i].DisconnectFromServer();
             }
 
             Console.WriteLine("\n\nTap to close the window...");

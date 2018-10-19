@@ -21,7 +21,8 @@ namespace ClientConsoleApplication
 
         public void ConnectToServer(string serverName)
         {
-            this.pipeClient = new NamedPipeClientStream("FakePipeName", serverName, PipeDirection.InOut);
+            this.pipeClient = new NamedPipeClientStream(serverName);
+            //this.pipeClient = new NamedPipeClientStream(serverName, "FakePipeName", PipeDirection.InOut);
             pipeClient.Connect(ConnectionTimeout);
         }
 
@@ -41,8 +42,12 @@ namespace ClientConsoleApplication
             {
                 for(int i = 0; i < count; i++)
                 {
+                    Console.WriteLine($"[CLIENT]: Send '{this.Messages[i]}'");
+
                     streamWriter.WriteLine(this.Messages[i]);
                     streamWriter.Flush();
+
+                    Console.WriteLine("[CLIENT]: Messages was successfully delivered.");
                 }
             }
         }
@@ -65,6 +70,7 @@ namespace ClientConsoleApplication
             using (var streamReader = new StreamReader(this.pipeClient))
             {
                 var messages = new List<string>();
+
                 string receivedMessage = streamReader.ReadLine();
 
                 while(receivedMessage != StopReadingMessagesCommand)

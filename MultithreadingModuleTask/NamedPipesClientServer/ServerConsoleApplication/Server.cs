@@ -122,10 +122,15 @@ namespace ServerConsoleApplication
                 {
                     using (StreamWriter streamWriter = new StreamWriter(pipeServer))
                     {
-                        for (int i = storedMessages.Count - 1; i >= count; i--)
+                        //for (int i = storedMessages.Count - 1; i >= count; i--)
+                        for(int i = 0; i < storedMessages.Count; i++)
                         {
+                            Console.WriteLine($"[SERVER]: Send '{storedMessages[i]}' to client");
+
                             streamWriter.WriteLine(storedMessages[i]);
                             streamWriter.Flush();
+
+                            Console.WriteLine("[SERVER]: Message was successfully delivered.");
                         }
 
                         streamWriter.WriteLine(StopReadingMessagesCommand);
