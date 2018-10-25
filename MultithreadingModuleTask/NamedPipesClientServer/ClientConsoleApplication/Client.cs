@@ -1,28 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.IO.Pipes;
 
 namespace ClientConsoleApplication
 {
+    /// <summary>
+    /// The client class.
+    /// </summary>
     public class Client
     {
-        private const int ConnectionTimeout = 5000;
+        private const int ConnectionTimeout = 30000;
         private const string StopReadingMessagesCommand = "StopReadingMessagesCommand";
+        private const string PipeName = "testpipe";
+
         private NamedPipeClientStream pipeClient;
 
         public string ClientName { get; set; }
         public List<string> Messages { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Client"/> class.
+        /// </summary>
         public Client()
         {
             this.Messages = new List<string>();
         }
 
+        /// <summary>
+        /// Connects to a server.
+        /// </summary>
+        /// <param name="serverName">The name of the server.</param>
         public void ConnectToServer(string serverName)
         {
-            this.pipeClient = new NamedPipeClientStream(serverName);
-            //this.pipeClient = new NamedPipeClientStream(serverName, "FakePipeName", PipeDirection.InOut);
+            this.pipeClient = new NamedPipeClientStream(serverName, PipeName, PipeDirection.InOut, PipeOptions.None);
             pipeClient.Connect(ConnectionTimeout);
         }
 
@@ -38,26 +48,19 @@ namespace ClientConsoleApplication
                 throw new ArgumentException("Count is greater than the number of existing messages.");
             }
 
-            using (StreamWriter streamWriter = new StreamWriter(pipeClient))
+            var ss = new StreamString(this.pipeClient);
+
+            for (int i = 0; i < count; i++)
             {
-                for(int i = 0; i < count; i++)
-                {
-                    Console.WriteLine($"[CLIENT]: Send '{this.Messages[i]}'");
+                Console.WriteLine($"[CLIENT]: Send '{this.Messages[i]}'");
 
-                    streamWriter.WriteLine(this.Messages[i]);
-                    streamWriter.Flush();
-
-                    Console.WriteLine("[CLIENT]: Messages was successfully delivered.");
-                }
+                ss.WriteString(this.Messages[i]);
             }
         }
 
         public void DisconnectFromServer()
         {
-            if(this.pipeClient != null)
-            {
-                pipeClient.Dispose();
-            }
+            pipeClient?.Dispose();
         }
 
         /// <summary>
@@ -67,20 +70,20 @@ namespace ClientConsoleApplication
         /// <returns>Returns the list of received messages.</returns>
         public List<string> GetHistoryOfMessagesFromServer()
         {
-            using (var streamReader = new StreamReader(this.pipeClient))
+            var messages = new List<string>();
+            var ss = new StreamString(this.pipeClient);
+
+            string receivedMessage = ss.ReadString();
+
+            while (this.pipeClient.IsConnected &&
+                   receivedMessage != StopReadingMessagesCommand &&
+                   !string.IsNullOrEmpty(receivedMessage))
             {
-                var messages = new List<string>();
-
-                string receivedMessage = streamReader.ReadLine();
-
-                while(receivedMessage != StopReadingMessagesCommand)
-                {
-                    messages.Add(receivedMessage);
-                    receivedMessage = streamReader.ReadLine();
-                }
-
-                return messages;
+                messages.Add(receivedMessage);
+                receivedMessage = ss.ReadString();
             }
+
+            return messages;
         }
     }
 }

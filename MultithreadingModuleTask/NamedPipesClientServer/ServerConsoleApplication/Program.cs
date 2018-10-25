@@ -4,10 +4,9 @@ namespace ServerConsoleApplication
 {
     class Program
     {
-        private const string PipeName = "TestPipeName";
-        private const string StopCommand = "stop";
+        private const string PipeName = "testpipe";
 
-        static void Main(string[] args)
+        static void Main()
         {
             var server = new Server(PipeName);
             server.Start();

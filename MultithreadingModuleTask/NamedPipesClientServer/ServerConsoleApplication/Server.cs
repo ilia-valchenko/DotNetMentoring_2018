@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Threading;
 
 namespace ServerConsoleApplication
 {
+    /// <summary>
+    /// The server class.
+    /// </summary>
     public class Server
     {
         private const string StopReadingMessagesCommand = "StopReadingMessagesCommand";
@@ -15,14 +17,31 @@ namespace ServerConsoleApplication
 
         private Thread[] servers = new Thread[NumberOfThreads];
         private NamedPipeServerStream pipeServer;
-        private readonly List<string> storedMessages = new List<string>();
-        private readonly string pipeName;
 
+        private readonly string pipeName;
+        private readonly List<string> storedMessages = new List<string>
+        {
+            "test 1",
+            "test 2",
+            "test 3",
+            "test 4",
+            "test 5",
+            "test 6",
+            "test 7"
+        };
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Server"/> class.
+        /// </summary>
+        /// <param name="pipeName"></param>
         public Server(string pipeName)
         {
             this.pipeName = pipeName;
         }
 
+        /// <summary>
+        /// Starts the server.
+        /// </summary>
         public void Start()
         {
             int i;
@@ -60,88 +79,70 @@ namespace ServerConsoleApplication
 
         private void ServerThread(object data)
         {
-            using (var pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NumberOfThreads))
-            {
-                Console.WriteLine("[SERVER]: Waiting for a client connection...");
+            var pipeServer = new NamedPipeServerStream(this.pipeName, PipeDirection.InOut, NumberOfThreads);
 
-                // Wait for a client to connect.
-                pipeServer.WaitForConnection();
+            Console.WriteLine($"Can server read = {pipeServer.CanRead}\nCan server write = {pipeServer.CanRead}");
 
-                Console.WriteLine($"[SERVER]: Client connected on thread[{Thread.CurrentThread.ManagedThreadId}].");
+            // Wait for a client to connect.
+            pipeServer.WaitForConnection();
 
-                Console.WriteLine($"[SERVER]: Send last {NumberOfStoredMessages} stored messages to a new client.");
+            Console.WriteLine($"[SERVER]: Client connected on thread[{Thread.CurrentThread.ManagedThreadId}].");
 
-                SendMessagesToClient(NumberOfStoredMessages);
+            Console.WriteLine($"[SERVER]: Send last {NumberOfStoredMessages} stored messages to a new client. Thread[{Thread.CurrentThread.ManagedThreadId}].");
 
-                try
-                {
-                    using (StreamReader streamReader = new StreamReader(pipeServer))
-                    {
-                        string receivedMessage;
-
-                        while (true)
-                        {
-                            Console.WriteLine("[SERVER]: Wait for a message to arrive from the cliet...");
-
-                            if (pipeServer.IsConnected)
-                            {
-                                receivedMessage = streamReader.ReadLine();
-                                Console.WriteLine($"[SERVER]: Client's message is '{receivedMessage}'.");
-                                storedMessages.Add(receivedMessage);
-                            }
-                            else
-                            {
-                                Console.WriteLine("[SERVER]: Client disconnected.");
-                                pipeServer.Disconnect();
-
-                                Console.WriteLine("[SERVER]: Waiting for a client connection...");
-                                pipeServer.WaitForConnection();
-                                Console.WriteLine("[SERVER]: Connection established.");
-                                Console.WriteLine($"[SERVER]: Send last {NumberOfStoredMessages} stored messages to a new client.");
-                            }
-                        }
-                    }
-                }
-                catch (Exception exc)
-                {
-                    Console.WriteLine($"Failed to read messages from client. See the error below.\nErrorMessage: {exc.Message}\nStackTrace: {exc.StackTrace}");
-                    throw;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Sends first N stored messages to a new client.
-        /// </summary>
-        /// <param name="count">The number of messages.</param>
-        public void SendMessagesToClient(int count)
-        {
             if (storedMessages != null && storedMessages.Any())
             {
                 try
                 {
-                    using (StreamWriter streamWriter = new StreamWriter(pipeServer))
+                    var ss = new StreamString(pipeServer);
+
+                    foreach (string msg in storedMessages)
                     {
-                        //for (int i = storedMessages.Count - 1; i >= count; i--)
-                        for(int i = 0; i < storedMessages.Count; i++)
-                        {
-                            Console.WriteLine($"[SERVER]: Send '{storedMessages[i]}' to client");
+                        Console.WriteLine($"[SERVER]: Send '{msg}' to client");
 
-                            streamWriter.WriteLine(storedMessages[i]);
-                            streamWriter.Flush();
+                        ss.WriteString(msg);
 
-                            Console.WriteLine("[SERVER]: Message was successfully delivered.");
-                        }
-
-                        streamWriter.WriteLine(StopReadingMessagesCommand);
-                        streamWriter.Flush();
+                        Console.WriteLine("[SERVER]: Message was successfully delivered.");
                     }
+
+                    ss.WriteString(StopReadingMessagesCommand);
                 }
                 catch (Exception exc)
                 {
                     Console.WriteLine($"Failed to send messages to client. See the error below.\nErrorMessage: {exc.Message}\nStackTrace: {exc.StackTrace}");
                     throw;
                 }
+            }
+            else
+            {
+                Console.WriteLine("[SERVER]: History of messages is empty. Nothing will be send to a client.");
+            }
+
+            try
+            {
+                var ss = new StreamString(pipeServer);
+                string receivedMessage = ss.ReadString();
+
+                while (true)
+                {
+                    if (pipeServer.IsConnected &&
+                        receivedMessage != StopReadingMessagesCommand &&
+                        !string.IsNullOrEmpty(receivedMessage))
+                    {
+                        Console.WriteLine($"[SERVER]: Client's message is '{receivedMessage}'. Thread[{Thread.CurrentThread.ManagedThreadId}].");
+                        storedMessages.Add(receivedMessage);
+                        receivedMessage = ss.ReadString();
+                    }
+                    else
+                    {
+                        pipeServer.Close();
+                    }
+                }
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine($"Failed to read messages from client. See the error below.\nErrorMessage: {exc.Message}\nStackTrace: {exc.StackTrace}");
+                throw;
             }
         }
     }
