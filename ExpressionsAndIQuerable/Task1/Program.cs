@@ -13,10 +13,21 @@ namespace Task1
 
         static void Main(string[] args)
         {
-            Expression<Func<int, int>> initialExpression = (number) => number * 2 + (number + 1) + (5 + 3) + (1 + number);
-            var addToIncrementTransformer = new AddToIncrementTransformer();
+            //Expression<Func<int, int>> initialExpression = (number) => number * 2 + (number + 1) + (5 + 3) + (1 + number);
+            //var addToIncrementTransformer = new AddToIncrementTransformer();
 
-            var transformedExpression = addToIncrementTransformer.VisitAndConvert(initialExpression, FakeCallerName);
+            //var transformedExpression = addToIncrementTransformer.VisitAndConvert(initialExpression, FakeCallerName);
+
+            var dictionary = new Dictionary<string, int>
+            {
+                { "number", 100},
+                { "value", 500}
+            };
+
+            Expression<Func<int, int, int>> initialExpression = (number, value) => number * 2 + (number + 1) + (5 + 3) + (1 + number) + value;
+            var tr = new ParameterToConstantTransformer<int>(dictionary);
+
+            var result = tr.VisitAndConvert(initialExpression, FakeCallerName);
 
             Console.WriteLine("\n\nTap to continue...");
             Console.ReadKey();
