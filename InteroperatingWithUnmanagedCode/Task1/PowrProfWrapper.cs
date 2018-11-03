@@ -46,7 +46,6 @@ namespace Task1
         /// If the function succeeds, the return value is nonzero.
         /// If the function fails, the return value is zero.
         /// </returns>
-        //[DllImport("powrprof.dll", EntryPoint = "CallNtPowerInformation", CallingConvention = CallingConvention.StdCall)]
         [DllImport("Powrprof.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         public static extern bool SetSuspendState(
             bool bHibernate,

@@ -9,7 +9,7 @@
 
         public override string ToString()
         {
-            return $"SYSTEM_POWER_INFORMATION\nMaxIdlenessAllowed: {MaxIdlenessAllowed}\nIdleness: {Idleness}\nTimeRemaining: {TimeRemaining}\nCoolingMode: {CoolingMode}";
+            return $"SYSTEM_POWER_INFORMATION\nMaxIdlenessAllowed: {MaxIdlenessAllowed}\nIdleness: {Idleness}\nTimeRemaining: {TimeRemaining}\nCoolingMode: {CoolingMode}\n";
         }
     }
 }
