@@ -6,7 +6,7 @@ namespace Task1
     /// <summary>
     /// Wrapper for the API which powrprof.dll provides.
     /// </summary>
-    public static class PowrProfWrapper
+    internal static class PowrProfWrapper
     {
         /// <summary>
         /// Sets or retrieves power information.
