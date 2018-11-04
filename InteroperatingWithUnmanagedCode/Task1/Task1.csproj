@@ -50,15 +50,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PowerInformationLevelEnum.cs" />
-    <Compile Include="PowrProfWrapper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SystemBatteryStateStructure.cs" />
-    <Compile Include="SystemPowerInformationStructure.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Task1Library\Task1Library.csproj">
+      <Project>{8715e1ce-eda1-42f1-93da-bb4bc498529c}</Project>
+      <Name>Task1Library</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

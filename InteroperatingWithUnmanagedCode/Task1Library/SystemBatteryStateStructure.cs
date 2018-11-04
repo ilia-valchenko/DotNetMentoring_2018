@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Task1
+namespace Task1Library
 {
     public struct SYSTEM_BATTERY_STATE
     {

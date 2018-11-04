@@ -1,4 +1,4 @@
-﻿namespace Task1
+﻿namespace Task1Library
 {
     public enum POWER_INFORMATION_LEVEL
     {

@@ -23,9 +23,14 @@ namespace Task2
             bool bForce = true;
             bool bWakeupEventsDisabled = true;
 
-            Task1.PowrProfWrapper.SetSuspendState(bHibernate, bForce, bWakeupEventsDisabled);
+            Task1Library.PowrProfWrapper.SetSuspendState(bHibernate, bForce, bWakeupEventsDisabled);
 
             return 1;
+        }
+
+        public int Sum(int a, int b)
+        {
+            return a + b;
         }
     }
 }

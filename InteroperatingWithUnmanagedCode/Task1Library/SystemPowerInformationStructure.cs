@@ -1,4 +1,4 @@
-﻿namespace Task1
+﻿namespace Task1Library
 {
     public struct SYSTEM_POWER_INFORMATION
     {

@@ -8,5 +8,8 @@ namespace Task2
     public interface IPowrProfWrapper
     {
         /*void*/ int TurnOnSleepMode();
+
+        // test
+        int Sum(int a, int b);
     }
 }
