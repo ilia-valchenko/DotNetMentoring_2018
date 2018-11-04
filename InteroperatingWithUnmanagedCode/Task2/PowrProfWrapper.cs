@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
+using Task1Library;
 
 namespace Task2
 {
@@ -17,20 +19,49 @@ namespace Task2
     [ClassInterface(ClassInterfaceType.None)]
     public class PowrProfWrapper : IPowrProfWrapper
     {
-        public /*void*/ int TurnOnSleepMode()
+        /// <summary>
+        /// Reserves or removes system hibernation file.
+        /// </summary>
+        /// <param name="reserve">
+        /// The reserver. If parameter is set to TRUE then the hibernation file is reserved,
+        /// if the parameter is set to FALSE then the hibernation file is removed.
+        /// </param>
+        /// <returns>
+        /// Returns the numner which stands for one of Nt statuses.
+        /// </returns>
+        public uint ReserveHibernationFile(bool reserve)
+        {
+            int sizeOfInputBuffer = Marshal.SizeOf<UInt32>();
+            uint sizeOfOutputBuffer = 0;
+            IntPtr inputBuffer = Marshal.AllocHGlobal(sizeOfInputBuffer);
+            Marshal.WriteInt32(inputBuffer, Convert.ToInt32(reserve));
+
+            // Note: the hiberfil.sys file is located at C:\. You should run the Task1.exe with admin
+            // admin permission if you want to delete hiberfil.sys.
+
+            var statusResult = Task1Library.PowrProfWrapper.CallNtPowerInformation(
+                POWER_INFORMATION_LEVEL.SystemReserveHiberFile,
+                inputBuffer,
+                (uint)sizeOfInputBuffer,
+                IntPtr.Zero,
+                sizeOfOutputBuffer);
+
+            return (uint)statusResult;
+        }
+
+        /// <summary>
+        /// Turns on sleep mode.
+        /// </summary>
+        /// <returns>
+        /// Returns true if a sleep mode was successfully activated.
+        /// </returns>
+        public bool TurnOnSleepMode()
         {
             bool bHibernate = true;
             bool bForce = true;
             bool bWakeupEventsDisabled = true;
 
-            Task1Library.PowrProfWrapper.SetSuspendState(bHibernate, bForce, bWakeupEventsDisabled);
-
-            return 1;
-        }
-
-        public int Sum(int a, int b)
-        {
-            return a + b;
+            return Task1Library.PowrProfWrapper.SetSuspendState(bHibernate, bForce, bWakeupEventsDisabled);
         }
     }
 }

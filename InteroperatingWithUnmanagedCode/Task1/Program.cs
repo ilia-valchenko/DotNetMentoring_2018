@@ -116,7 +116,7 @@ namespace Task1
             Console.WriteLine("\nAttention! After pressing any key your computer will go the sleep mode.\nTap to continue...");
             Console.ReadKey();
 
-            PowrProfWrapper.SetSuspendState(true, true, true);
+            var result = PowrProfWrapper.SetSuspendState(true, true, true);
 
             #endregion
 
