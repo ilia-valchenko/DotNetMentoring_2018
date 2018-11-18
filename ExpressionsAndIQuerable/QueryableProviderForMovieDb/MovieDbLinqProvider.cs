@@ -22,7 +22,7 @@ namespace QueryableProviderForMovieDb
         {
             var itemType = TypeHelper.GetElementType(expression.Type);
 
-            var translator = new ExpressionToFTSRequestTranslator();
+            var translator = new ExpressionQueryTranslator();
             var queryString = translator.Translate(expression);
 
             return (TResult) _movieDbQueryClient.Search(itemType, queryString);

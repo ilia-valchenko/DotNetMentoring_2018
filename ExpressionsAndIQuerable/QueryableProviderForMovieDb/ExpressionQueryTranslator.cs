@@ -5,16 +5,24 @@ using System.Text;
 
 namespace QueryableProviderForMovieDb
 {
-    public class ExpressionToFTSRequestTranslator : ExpressionVisitor
+    public class ExpressionQueryTranslator : ExpressionVisitor
     {
-        StringBuilder resultString;
+        private StringBuilder _resultString;
+
+        internal ExpressionQueryTranslator()
+        {
+            _resultString = new StringBuilder();
+        }
 
         public string Translate(Expression exp)
         {
-            resultString = new StringBuilder();
+            _resultString.Append("{\"fields\": [");
+
             Visit(exp);
 
-            return resultString.ToString();
+            _resultString.Append("]}");
+
+            return _resultString.ToString();
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
@@ -42,9 +50,9 @@ namespace QueryableProviderForMovieDb
                         throw new NotSupportedException(string.Format("Right operand should be constant", node.NodeType));
 
                     Visit(node.Left);
-                    resultString.Append("(");
+                    _resultString.Append("(");
                     Visit(node.Right);
-                    resultString.Append(")");
+                    _resultString.Append(")");
                     break;
 
                 default:
@@ -56,14 +64,14 @@ namespace QueryableProviderForMovieDb
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            resultString.Append(node.Member.Name).Append(":");
+            _resultString.Append(node.Member.Name).Append(":");
 
             return base.VisitMember(node);
         }
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            resultString.Append(node.Value);
+            _resultString.Append(node.Value);
 
             return node;
         }

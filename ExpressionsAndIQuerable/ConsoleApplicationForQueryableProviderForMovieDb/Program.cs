@@ -1,5 +1,8 @@
 ﻿using System;
 using QueryableProviderForMovieDb;
+using QueryableProviderForMovieDb.Entities;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace ConsoleApplicationForQueryableProviderForMovieDb
 {
@@ -7,13 +10,24 @@ namespace ConsoleApplicationForQueryableProviderForMovieDb
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("\nEnter you query to start search movies:");
-            string query = Console.ReadLine();
+            //Console.WriteLine("\nEnter you query to start search movies:");
+            //string query = Console.ReadLine();
 
-            var movieDbClient = new MovieDbClient();
-            var discoverResult = movieDbClient.SearchMovies(query);
+            //var movieDbClient = new MovieDbQueryClient();
+            //var discoverResult = movieDbClient.SearchMovies(query);
 
-            Console.WriteLine($"\nSearch results:\n{discoverResult}");
+            //Console.WriteLine($"\nSearch results:\n{discoverResult}");
+
+            // -----------------------------------------------------------
+
+            //var client = new MovieDbQueryClient();
+            //var linqProvider = new MovieDbLinqProvider(client);
+            //MovieDbQuery<MovieEntity> movieQuery = new MovieDbQuery<MovieEntity>(null, linqProvider);
+            //var result = movieQuery.Where(m => m.Title == "Blade runner");
+
+            var movies = new MovieDbEntitySet<MovieEntity>();
+            var filteredMovies = movies.Where(m => m.Title == "Blade runner");
+            var result = filteredMovies.ToList();
 
             Console.WriteLine("\n\nTap to continue...");
             Console.ReadKey();

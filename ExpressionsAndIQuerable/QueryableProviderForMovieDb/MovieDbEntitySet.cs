@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using QueryableProviderForMovieDb.Entities;
+using System.Collections;
 
 namespace QueryableProviderForMovieDb
 {
@@ -22,7 +21,36 @@ namespace QueryableProviderForMovieDb
 
         public Type ElementType
         {
-            get { return typeof(T); }
+            get
+            {
+                return typeof(T);
+            }
+        }
+
+        public Expression Expression
+        {
+            get
+            {
+                return expression;
+            }
+        }
+
+        public IQueryProvider Provider
+        {
+            get
+            {
+                return provider;
+            }
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return provider.Execute<IEnumerable<T>>(expression).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return provider.Execute<IEnumerable>(expression).GetEnumerator();
         }
     }
 }

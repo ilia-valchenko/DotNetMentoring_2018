@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Net.Http;
 using Newtonsoft.Json;
@@ -9,64 +8,62 @@ using QueryableProviderForMovieDb.Entities;
 
 namespace QueryableProviderForMovieDb
 {
-    public sealed class MovieDbClient
+    public sealed class MovieDbQueryClient
     {
         private readonly Uri _baseAddress;
         private readonly HttpClient _httpClient;
-        private readonly string _apiKey;
 
-        public MovieDbClient()
+        public MovieDbQueryClient()
         {
             _httpClient = new HttpClient();
-            _baseAddress = new Uri("https://api.themoviedb.org/3");
-            _apiKey = ConfigurationManager.AppSettings["movieDbApiKey"];
+            _baseAddress = new Uri("http://localhost:49922/api/movie");
         }
 
-        public IEnumerable<T> Search<T>(string query, int page = 1)
+        public IEnumerable<T> Search<T>(string query)
             where T: MovieDbEntity
         {
-            var requestUrl = new Uri(_baseAddress, $"search/movie?api_key={_apiKey}&page={page}");
-            var response = _httpClient.GetAsync(requestUrl)
-                .Result;
+            Uri request = new Uri(_baseAddress, $"?query={query}");
 
-            string stringResult = response.Content.ReadAsStringAsync().Result;
-            var discoveryEntity = JsonConvert.DeserializeObject<DiscoveryEntity>(stringResult);
+            var resultString = _httpClient.GetStringAsync(request).Result;
+            var result = JsonConvert.DeserializeObject<List<MovieEntity>>(resultString);
 
-            return discoveryEntity.Results.Select(x => x as T);
+            return result.Select(x => x as T);
         }
 
-        public IEnumerable Search(Type type, string query, int page = 1/*, int start = 0, int limit = 0*/)
+        public IEnumerable Search(Type type, string query)
         {
-            var requestUrl = new Uri(_baseAddress, $"search/movie?api_key={_apiKey}&page={page}&query={query}");
-            var response = _httpClient.GetAsync(requestUrl)
-                .Result;
+            Uri request = new Uri(_baseAddress, $"?query={query}");
 
-            string stringResult = response.Content.ReadAsStringAsync().Result;
-            var discoveryEntity = JsonConvert.DeserializeObject<DiscoveryEntity>(stringResult);
+            var resultString = _httpClient.GetStringAsync(request).Result;
+
+            var endType = typeof(List<MovieEntity>).MakeGenericType(type);
+            var result = JsonConvert.DeserializeObject(resultString, endType);
 
             var list = Activator.CreateInstance(typeof(List<>).MakeGenericType(type)) as IList;
 
-            foreach (var discoveredItem in discoveryEntity.Results)
+            foreach (object item in (IEnumerable)result)
             {
-                list.Add(discoveredItem);
+                list.Add(item);
             }
 
             return list;
         }
 
-        //public DiscoveryEntity SearchMovies(string query)
-        //{
-        //    var response = _httpClient.GetAsync($"https://api.themoviedb.org/3/search/movie?api_key={_apiKey}&page=1&query={query}")
-        //        .Result;
+        // TODO: Delete this method.
+        [Obsolete]
+        public MovieEntity SearchMovies(string query)
+        {
+            var response = _httpClient.GetAsync($"http://localhost:49922/api/movie?query={query}")
+                .Result;
 
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        string stringResult = response.Content.ReadAsStringAsync().Result;
-        //        var discoveryEntity = JsonConvert.DeserializeObject<DiscoveryEntity>(stringResult);
-        //        return discoveryEntity;
-        //    }
+            if (response.IsSuccessStatusCode)
+            {
+                string stringResult = response.Content.ReadAsStringAsync().Result;
+                var discoveryEntity = JsonConvert.DeserializeObject<MovieEntity>(stringResult);
+                return discoveryEntity;
+            }
 
-        //    throw new HttpRequestException(response.ReasonPhrase);
-        //}
+            throw new HttpRequestException(response.ReasonPhrase);
+        }
     }
 }
