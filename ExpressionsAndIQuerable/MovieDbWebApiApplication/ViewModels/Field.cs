@@ -10,5 +10,8 @@ namespace MovieDbWebApiApplication.ViewModels
 
         [JsonProperty("value")]
         public string Value { get; set; }
+
+        [JsonProperty("operation")]
+        public string Operation { get; set; }
     }
 }

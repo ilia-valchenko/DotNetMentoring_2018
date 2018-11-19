@@ -116,5 +116,33 @@ namespace MovieDbWebApiApplication.Controllers
                     return false;
             }
         }
+
+        private bool isSatisfiedCondition<T>(T leftOperand, T rightOperand, string operation)
+        {
+            switch(operation)
+            {
+                case "equal":
+                    return leftOperand.Equals(rightOperand);
+
+                case "notequal":
+                    return !leftOperand.Equals(rightOperand);
+
+                case "greater":
+                    return Comparer<T>.Default.Compare(leftOperand, rightOperand) > 0;
+
+                case "greaterorequal":
+                    int greaterOrEqualResult = Comparer<T>.Default.Compare(leftOperand, rightOperand);
+                    return greaterOrEqualResult == 0 || greaterOrEqualResult > 0;
+
+                case "less":
+                    return Comparer<T>.Default.Compare(leftOperand, rightOperand) < 0;
+
+                case "lessorequal":
+                    int lessOrEqualResult = Comparer<T>.Default.Compare(leftOperand, rightOperand);
+                    return lessOrEqualResult == 0 || lessOrEqualResult < 0;
+            }
+
+            return false;
+        }
     }
 }

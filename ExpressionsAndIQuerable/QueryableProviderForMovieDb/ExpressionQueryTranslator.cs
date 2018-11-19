@@ -43,17 +43,33 @@ namespace QueryableProviderForMovieDb
             switch (node.NodeType)
             {
                 case ExpressionType.Equal:
+                    _resultString.Append($"{{\"operation\":\"equal\",");
+
                     if (!(node.Left.NodeType == ExpressionType.MemberAccess))
+                    {
                         throw new NotSupportedException(string.Format("Left operand should be property or field", node.NodeType));
+                    }
 
                     if (!(node.Right.NodeType == ExpressionType.Constant))
+                    {
                         throw new NotSupportedException(string.Format("Right operand should be constant", node.NodeType));
+                    }
 
                     Visit(node.Left);
-                    _resultString.Append("(");
+                    //_resultString.Append("(");
                     Visit(node.Right);
-                    _resultString.Append(")");
+                    //_resultString.Append(")");
                     break;
+
+                case ExpressionType.AndAlso:
+                    Visit(node.Left);
+                    _resultString.Append(",");
+                    Visit(node.Right);
+                    break;
+
+                //case ExpressionType.And:
+                //    _resultString.Append(",{{");
+                //    break;
 
                 default:
                     throw new NotSupportedException(string.Format("Operation {0} is not supported", node.NodeType));
@@ -64,14 +80,28 @@ namespace QueryableProviderForMovieDb
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            _resultString.Append(node.Member.Name).Append(":");
+            _resultString.Append($"\"name\":\"{node.Member.Name}\",");
 
             return base.VisitMember(node);
         }
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            _resultString.Append(node.Value);
+            _resultString.Append($"\"value\":");
+
+            if(node.Value is int)
+            {
+                _resultString.Append($"{node.Value}}}");
+            }
+            else if(node.Value is string)
+            {
+                var transformedString = node.Value.ToString().Replace(' ', '+');
+                _resultString.Append($"\"{transformedString}\"}}");
+            }
+            else
+            {
+                _resultString.Append($"\"{node.Value}\"}}");
+            }
 
             return node;
         }

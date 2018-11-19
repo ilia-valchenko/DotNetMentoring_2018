@@ -25,7 +25,7 @@ namespace QueryableProviderForMovieDb
             var translator = new ExpressionQueryTranslator();
             var queryString = translator.Translate(expression);
 
-            return (TResult) _movieDbQueryClient.Search(itemType, queryString);
+            return (TResult)_movieDbQueryClient.Search(itemType, queryString);
         }
 
         #region NotImplemented

@@ -26,7 +26,7 @@ namespace ConsoleApplicationForQueryableProviderForMovieDb
             //var result = movieQuery.Where(m => m.Title == "Blade runner");
 
             var movies = new MovieDbEntitySet<MovieEntity>();
-            var filteredMovies = movies.Where(m => m.Title == "Blade runner");
+            var filteredMovies = movies.Where(m => m.Id == 2 && m.Title == "Blade runner" && m.VoteAverage == 7.9);
             var result = filteredMovies.ToList();
 
             Console.WriteLine("\n\nTap to continue...");

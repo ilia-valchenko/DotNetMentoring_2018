@@ -48,22 +48,5 @@ namespace QueryableProviderForMovieDb
 
             return list;
         }
-
-        // TODO: Delete this method.
-        [Obsolete]
-        public MovieEntity SearchMovies(string query)
-        {
-            var response = _httpClient.GetAsync($"http://localhost:49922/api/movie?query={query}")
-                .Result;
-
-            if (response.IsSuccessStatusCode)
-            {
-                string stringResult = response.Content.ReadAsStringAsync().Result;
-                var discoveryEntity = JsonConvert.DeserializeObject<MovieEntity>(stringResult);
-                return discoveryEntity;
-            }
-
-            throw new HttpRequestException(response.ReasonPhrase);
-        }
     }
 }
