@@ -33,12 +33,9 @@ namespace QueryableProviderForMovieDb
         public IEnumerable Search(Type type, string query)
         {
             Uri request = new Uri(_baseAddress, $"?query={query}");
-
             var resultString = _httpClient.GetStringAsync(request).Result;
-
-            var endType = typeof(List<MovieEntity>).MakeGenericType(type);
+            var endType = typeof(List<>).MakeGenericType(type);
             var result = JsonConvert.DeserializeObject(resultString, endType);
-
             var list = Activator.CreateInstance(typeof(List<>).MakeGenericType(type)) as IList;
 
             foreach (object item in (IEnumerable)result)
