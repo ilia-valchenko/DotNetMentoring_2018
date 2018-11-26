@@ -4,6 +4,7 @@ using System.IO;
 using System.ServiceProcess;
 using System.Threading;
 using System.Configuration;
+using System.Text.RegularExpressions;
 
 namespace TaskWindowsServiceModule
 {
@@ -13,12 +14,16 @@ namespace TaskWindowsServiceModule
         private readonly string logName;
         private readonly Dictionary<string, bool> dictionaryProcessedFiles;
         private int iteration = 1;
+        private readonly Regex imageFormatRegex;
 
         public ImagePdfBinderService()
         {
             timer = new Timer(WorkProcedure);
             logName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationManager.AppSettings["logFileName"]);
             dictionaryProcessedFiles = new Dictionary<string, bool>();
+
+            // https://stackoverflow.com/questions/374930/validating-file-types-by-regular-expression
+            imageFormatRegex = new Regex(@"^.*\.(jpg|JPG|gif|GIF|doc|DOC|pdf|PDF)$");
         }
 
         private void WorkProcedure(object target)
@@ -35,7 +40,10 @@ namespace TaskWindowsServiceModule
                 {
                     try
                     {
-                        var isProcessedFile = dictionaryProcessedFiles[file.FullName];
+                        if(imageFormatRegex.IsMatch(file.Name))
+                        {
+                            var isProcessedFile = dictionaryProcessedFiles[file.FullName];
+                        }
                     }
                     catch (KeyNotFoundException exc)
                     {
