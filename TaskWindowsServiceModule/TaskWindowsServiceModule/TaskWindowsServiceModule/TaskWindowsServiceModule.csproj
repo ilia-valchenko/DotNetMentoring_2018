@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\PdfDocumentExtension.cs" />
     <Compile Include="FileNameParser.cs" />
     <Compile Include="ImagePdfBinderService.cs">
       <SubType>Component</SubType>

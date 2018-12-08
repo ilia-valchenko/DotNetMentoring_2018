@@ -4,6 +4,7 @@ using System.ServiceProcess;
 using System.Threading;
 using System.Configuration;
 using iTextSharp.text;
+using TaskWindowsServiceModule.Extensions;
 
 namespace TaskWindowsServiceModule
 {
@@ -95,13 +96,10 @@ namespace TaskWindowsServiceModule
 
                 _logger.Log($"The number of the current file is {numberOfCurrentImage}.");
 
-                Image img = Image.GetInstance(e.FullPath);
-
-                img.Alignment = Element.ALIGN_CENTER;
-
                 if (isFirstFile)
                 {
                     _numberOfLastImage = numberOfCurrentImage;
+                    isFirstFile = false;
                 }
                 else if(_numberOfLastImage + 1 != numberOfCurrentImage)
                 {
@@ -110,7 +108,7 @@ namespace TaskWindowsServiceModule
                     _doc.Open();
                 }
 
-                _doc.Add(img);
+                _doc.AddImage(Image.GetInstance(e.FullPath));
             }
             catch (Exception exception)
             {
