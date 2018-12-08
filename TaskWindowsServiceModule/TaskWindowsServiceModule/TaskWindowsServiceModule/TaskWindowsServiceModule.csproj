@@ -49,14 +49,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileNameParser.cs" />
     <Compile Include="ImagePdfBinderService.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="ImagePdfBinderService.Designer.cs">
       <DependentUpon>ImagePdfBinderService.cs</DependentUpon>
     </Compile>
+    <Compile Include="PdfDocumentService.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SimpleLogger.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

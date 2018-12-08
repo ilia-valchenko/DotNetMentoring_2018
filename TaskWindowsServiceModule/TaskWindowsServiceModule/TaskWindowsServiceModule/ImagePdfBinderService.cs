@@ -4,28 +4,30 @@ using System.ServiceProcess;
 using System.Threading;
 using System.Configuration;
 using iTextSharp.text;
-using iTextSharp.text.pdf;
 
 namespace TaskWindowsServiceModule
 {
     public partial class ImagePdfBinderService : ServiceBase
     {
-        private readonly string logName;
-        private int _counter = 0;
+        private readonly PdfDocumentService _pdfDocumentService;
+        private readonly SimpleLogger _logger;
+        private readonly string _imageFileExtension;
+        private int _numberOfLastImage = 0;
         private Document _doc;
+        private bool isFirstFile = true;
 
         public ImagePdfBinderService()
         {
-            logName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationManager.AppSettings["logFileName"]);
-            _doc = new Document();
-            PdfWriter.GetInstance(_doc, new FileStream(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationManager.AppSettings["pdfFileName"]), FileMode.Create));
+            _pdfDocumentService = new PdfDocumentService();
+            _logger = new SimpleLogger();
+            _imageFileExtension = ConfigurationManager.AppSettings["imageFileExtension"];
+            _doc = _pdfDocumentService.CreateNextPdfDocument();
             _doc.Open();
-            _doc.Add(new Paragraph("Hello World!"));
         }
 
         protected override void OnStart(string[] args)
         {
-            File.AppendAllText(logName, DateTime.Now.ToLongTimeString() + $" FileProcessorService has started. Now it uses FileSystemWatcher.");
+            _logger.Log("Service started.");
 
             try
             {
@@ -39,13 +41,11 @@ namespace TaskWindowsServiceModule
                     NotifyFilters.FileName |
                     NotifyFilters.DirectoryName;
 
-                // Only watch text files.
-                watcher.Filter = "*.jpg";
+                watcher.Filter = "*" + _imageFileExtension;
 
                 // TODO: I stoped here.
                 //watcher.WaitForChanged
 
-                // Add event handlers.
                 watcher.Created += new FileSystemEventHandler(OnCreated);
 
                 // Begin watching.
@@ -53,13 +53,13 @@ namespace TaskWindowsServiceModule
             }
             catch (Exception exception)
             {
-                File.AppendAllText(logName, $"{Environment.NewLine}{DateTime.Now.ToLongTimeString()} Error message: {exception.Message}{Environment.NewLine}StackTrace: {exception.StackTrace}");
+                _logger.Log($"Error message: {exception.Message}{Environment.NewLine}StackTrace: {exception.StackTrace}");
             }
         }
 
         protected override void OnStop()
         {
-            File.AppendAllText(logName, $"{Environment.NewLine}{DateTime.Now.ToLongTimeString()} ON STOP");
+            _logger.Log("Service is stopping.");
 
             try
             {
@@ -67,13 +67,16 @@ namespace TaskWindowsServiceModule
             }
             catch (Exception exception)
             {
-                File.AppendAllText(logName, $"{Environment.NewLine}{DateTime.Now.ToLongTimeString()} Error message: {exception.Message}{Environment.NewLine}StackTrace: {exception.StackTrace}");
+                _logger.Log($"Error has occured during closing PDF document. Error message: {exception.Message}{Environment.NewLine}StackTrace: {exception.StackTrace}");
             }
+
+            _logger.Log("PDF document was closed.");
+            _logger.Log("Service stopped.");
         }
 
         public void OnCreated(object source, FileSystemEventArgs e)
         {
-            File.AppendAllText(logName, $"{Environment.NewLine}{DateTime.Now.ToLongTimeString()} File: {e.FullPath} {e.ChangeType}{Environment.NewLine}");
+            _logger.Log($"File: {e.FullPath} {e.ChangeType}{Environment.NewLine}");
 
             try
             {
@@ -87,54 +90,72 @@ namespace TaskWindowsServiceModule
                 //while (WaitForFile(e.FullPath) == false) ;
                 Thread.Sleep(1000);
 
-                iTextSharp.text.Image jpg = iTextSharp.text.Image.GetInstance(e.FullPath);
-                jpg.Alignment = Element.ALIGN_CENTER;
-                _doc.Add(jpg);
+
+                int numberOfCurrentImage = FileNameParser.ExtractNumberFromFileName(e.Name);
+
+                _logger.Log($"The number of the current file is {numberOfCurrentImage}.");
+
+                Image img = Image.GetInstance(e.FullPath);
+
+                img.Alignment = Element.ALIGN_CENTER;
+
+                if (isFirstFile)
+                {
+                    _numberOfLastImage = numberOfCurrentImage;
+                }
+                else if(_numberOfLastImage + 1 != numberOfCurrentImage)
+                {
+                    _doc.Close();
+                    _doc = _pdfDocumentService.CreateNextPdfDocument();
+                    _doc.Open();
+                }
+
+                _doc.Add(img);
             }
             catch (Exception exception)
             {
-                File.AppendAllText(logName, $"{Environment.NewLine}{DateTime.Now.ToLongTimeString()} Error message: {exception.Message}{Environment.NewLine}StackTrace: {exception.StackTrace}");
+                _logger.Log($"Error has occured during adding image to a PDF document. Error message: {exception.Message}{Environment.NewLine}StackTrace: {exception.StackTrace}");
             }
         }
 
-        private bool WaitForFile(string fullPath)
-        {
-            int numTries = 0;
-            while (true)
-            {
-                ++numTries;
-                try
-                {
-                    // Attempt to open the file exclusively.
-                    using (FileStream fs = new FileStream(fullPath,
-                        FileMode.Open, FileAccess.ReadWrite,
-                        FileShare.None, 100))
-                    {
-                        fs.ReadByte();
+        //private bool WaitForFile(string fullPath)
+        //{
+        //    int numTries = 0;
+        //    while (true)
+        //    {
+        //        ++numTries;
+        //        try
+        //        {
+        //            // Attempt to open the file exclusively.
+        //            using (FileStream fs = new FileStream(fullPath,
+        //                FileMode.Open, FileAccess.ReadWrite,
+        //                FileShare.None, 100))
+        //            {
+        //                fs.ReadByte();
 
-                        // If we got this far the file is ready
-                        break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    File.AppendAllText(logName,
-                       $"WaitForFile {fullPath} failed to get an exclusive lock: {ex.ToString()}");
+        //                // If we got this far the file is ready
+        //                break;
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            File.AppendAllText(logName,
+        //               $"WaitForFile {fullPath} failed to get an exclusive lock: {ex.ToString()}");
 
-                    if (numTries > 10)
-                    {
-                        File.AppendAllText(logName,
-                            $"WaitForFile {fullPath} giving up after 10 tries");
-                        return false;
-                    }
+        //            if (numTries > 10)
+        //            {
+        //                File.AppendAllText(logName,
+        //                    $"WaitForFile {fullPath} giving up after 10 tries");
+        //                return false;
+        //            }
 
-                    // Wait for the lock to be released
-                    System.Threading.Thread.Sleep(500);
-                }
-            }
+        //            // Wait for the lock to be released
+        //            System.Threading.Thread.Sleep(500);
+        //        }
+        //    }
 
-            File.AppendAllText(logName, $"WaitForFile {fullPath} returning true after {numTries} tries");
-            return true;
-        }
+        //    File.AppendAllText(logName, $"WaitForFile {fullPath} returning true after {numTries} tries");
+        //    return true;
+        //}
     }
 }
