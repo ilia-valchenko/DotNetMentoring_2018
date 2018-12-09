@@ -1,25 +1,32 @@
 ﻿using System;
 using System.IO;
 using System.ServiceProcess;
-using System.Threading;
 using System.Configuration;
 using iTextSharp.text;
 using TaskWindowsServiceModule.Extensions;
 
 namespace TaskWindowsServiceModule
 {
+    /// <summary>
+    /// The PDF image binder windows service.
+    /// </summary>
     public partial class ImagePdfBinderService : ServiceBase
     {
         private readonly PdfDocumentService _pdfDocumentService;
+        private readonly FileWatcherHelper _fileWatcherHelper;
         private readonly SimpleLogger _logger;
         private readonly string _imageFileExtension;
         private int _numberOfLastImage = 0;
         private Document _doc;
         private bool isFirstFile = true;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ImagePdfBinderService"/> class.
+        /// </summary>
         public ImagePdfBinderService()
         {
             _pdfDocumentService = new PdfDocumentService();
+            _fileWatcherHelper = new FileWatcherHelper();
             _logger = new SimpleLogger();
             _imageFileExtension = ConfigurationManager.AppSettings["imageFileExtension"];
             _doc = _pdfDocumentService.CreateNextPdfDocument();
@@ -43,10 +50,6 @@ namespace TaskWindowsServiceModule
                     NotifyFilters.DirectoryName;
 
                 watcher.Filter = "*" + _imageFileExtension;
-
-                // TODO: I stoped here.
-                //watcher.WaitForChanged
-
                 watcher.Created += new FileSystemEventHandler(OnCreated);
 
                 // Begin watching.
@@ -87,10 +90,7 @@ namespace TaskWindowsServiceModule
                 // which is why you are getting that error message. Basically, you need to
                 // wait your turn. Take the event and then have a utility watch that file
                 // until it is free for reading.
-
-                //while (WaitForFile(e.FullPath) == false) ;
-                Thread.Sleep(1000);
-
+                _fileWatcherHelper.WaitUntilFileIsReleased(e.FullPath);
 
                 int numberOfCurrentImage = FileNameParser.ExtractNumberFromFileName(e.Name);
 
@@ -98,7 +98,6 @@ namespace TaskWindowsServiceModule
 
                 if (isFirstFile)
                 {
-                    _numberOfLastImage = numberOfCurrentImage;
                     isFirstFile = false;
                 }
                 else if(_numberOfLastImage + 1 != numberOfCurrentImage)
@@ -109,51 +108,12 @@ namespace TaskWindowsServiceModule
                 }
 
                 _doc.AddImage(Image.GetInstance(e.FullPath));
+                _numberOfLastImage = numberOfCurrentImage;
             }
             catch (Exception exception)
             {
                 _logger.Log($"Error has occured during adding image to a PDF document. Error message: {exception.Message}{Environment.NewLine}StackTrace: {exception.StackTrace}");
             }
         }
-
-        //private bool WaitForFile(string fullPath)
-        //{
-        //    int numTries = 0;
-        //    while (true)
-        //    {
-        //        ++numTries;
-        //        try
-        //        {
-        //            // Attempt to open the file exclusively.
-        //            using (FileStream fs = new FileStream(fullPath,
-        //                FileMode.Open, FileAccess.ReadWrite,
-        //                FileShare.None, 100))
-        //            {
-        //                fs.ReadByte();
-
-        //                // If we got this far the file is ready
-        //                break;
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            File.AppendAllText(logName,
-        //               $"WaitForFile {fullPath} failed to get an exclusive lock: {ex.ToString()}");
-
-        //            if (numTries > 10)
-        //            {
-        //                File.AppendAllText(logName,
-        //                    $"WaitForFile {fullPath} giving up after 10 tries");
-        //                return false;
-        //            }
-
-        //            // Wait for the lock to be released
-        //            System.Threading.Thread.Sleep(500);
-        //        }
-        //    }
-
-        //    File.AppendAllText(logName, $"WaitForFile {fullPath} returning true after {numTries} tries");
-        //    return true;
-        //}
     }
 }

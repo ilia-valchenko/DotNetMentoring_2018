@@ -25,7 +25,7 @@ namespace TaskWindowsServiceModule
         public Document CreateNextPdfDocument()
         {
             string documentName = ConfigurationManager.AppSettings["pdfFileName"];
-            int nextDocumentNumber = _numberOfPdfDocument + 1;
+            int nextDocumentNumber = ++_numberOfPdfDocument;
             var doc = new Document();
 
             _logger.Log($"Create a new PDF document {documentName + nextDocumentNumber}");

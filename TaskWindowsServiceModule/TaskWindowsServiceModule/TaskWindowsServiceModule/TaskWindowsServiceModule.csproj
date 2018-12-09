@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="Extensions\PdfDocumentExtension.cs" />
     <Compile Include="FileNameParser.cs" />
+    <Compile Include="FileWatcherHelper.cs" />
     <Compile Include="ImagePdfBinderService.cs">
       <SubType>Component</SubType>
     </Compile>
