@@ -16,7 +16,14 @@ namespace TaskWindowsServiceModule
         /// </summary>
         public SimpleLogger()
         {
-            logName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationManager.AppSettings["logFileName"]);
+            var logFileName = ConfigurationManager.AppSettings["logFileName"]
+                 + "_"
+                 + DateTime.Now.ToLongTimeString().Replace(':', '-')
+                 + ".log";
+
+            logName = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                logFileName);
         }
 
         /// <summary>

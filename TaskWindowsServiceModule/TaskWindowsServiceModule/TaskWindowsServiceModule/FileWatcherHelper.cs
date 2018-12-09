@@ -29,6 +29,40 @@ namespace TaskWindowsServiceModule
             while (WaitForFile(fullPath) == false) ;
         }
 
+        /// <summary>
+        /// Moves file to a folder.
+        /// </summary>
+        /// <param name="fileName">The name of the file that have to be moved.</param>
+        /// <param name="filePath">The full path of the file.</param>
+        /// <param name="folderPath">The full path of the destination foler.</param>
+        public void MoveFileToFolder(string fileName, string filePath, string folderPath)
+        {
+            if(string.IsNullOrEmpty(filePath))
+            {
+                throw new ArgumentException("File path is null or empty.");
+            }
+
+            if(string.IsNullOrEmpty(folderPath))
+            {
+                throw new ArgumentException("The path of the destination folder is null or empty.");
+            }
+
+            try
+            {
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+
+                File.Move(filePath, Path.Combine(folderPath, fileName));
+            }
+            catch(Exception exc)
+            {
+                _logger.Log($"Image has not been moved to the {folderPath}");
+                _logger.Log($"Error message: {exc.Message}{Environment.NewLine}StackTrace: {exc.StackTrace}");
+            }
+        }
+
         private bool WaitForFile(string fullPath)
         {
             int numTries = 0;

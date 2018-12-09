@@ -40,7 +40,9 @@ namespace TaskWindowsServiceModule
             try
             {
                 FileSystemWatcher watcher = new FileSystemWatcher();
-                watcher.Path = ConfigurationManager.AppSettings["DirectoryPath"];
+                watcher.Path = Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory,
+                    ConfigurationManager.AppSettings["DirectoryName"]);
 
                 // Watch for changes in LastAccess and LastWrite times, and
                 // the renaming of files or directories.
@@ -109,6 +111,18 @@ namespace TaskWindowsServiceModule
 
                 _doc.AddImage(Image.GetInstance(e.FullPath));
                 _numberOfLastImage = numberOfCurrentImage;
+            }
+            catch (IOException ioException)
+            {
+                _logger.Log($"Error message: {ioException.Message}{Environment.NewLine}StackTrace: {ioException.StackTrace}");
+                _logger.Log($"The file {e.Name} will be moved to a separate folder.");
+
+                _fileWatcherHelper.MoveFileToFolder(
+                    e.Name,
+                    e.FullPath,
+                    Path.Combine(
+                        AppDomain.CurrentDomain.BaseDirectory,
+                        ConfigurationManager.AppSettings["notLoadedImagesFolderName"]));
             }
             catch (Exception exception)
             {
