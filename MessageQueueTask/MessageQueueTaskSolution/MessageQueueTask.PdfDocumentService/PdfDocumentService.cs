@@ -1,6 +1,5 @@
 ﻿using iTextSharp.text;
 using iTextSharp.text.pdf;
-using System.Configuration;
 using System.IO;
 
 namespace MessageQueueTask.PdfDocumentService
@@ -20,7 +19,8 @@ namespace MessageQueueTask.PdfDocumentService
 
         public Document CreateNextPdfDocument(ref MemoryStream memoryStream)
         {
-            string documentName = ConfigurationManager.AppSettings["pdfFileName"];
+            _logger.Info($"Create a new PDF document at number {++_numberOfPdfDocument}.");
+
             int nextDocumentNumber = ++_numberOfPdfDocument;
             var doc = new Document();
 
@@ -33,7 +33,7 @@ namespace MessageQueueTask.PdfDocumentService
             memoryStream = new MemoryStream();
             PdfWriter.GetInstance(doc, memoryStream);
 
-            _logger.Info($"Create a new PDF document {documentName + nextDocumentNumber}");
+            _logger.Info($"The new PDF document at number {nextDocumentNumber} was created.");
 
             return doc;
         }
