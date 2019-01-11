@@ -3,6 +3,7 @@ using System;
 using System.Configuration;
 using System.Messaging;
 using System.IO;
+using CentralManagementService.Messages;
 
 namespace CentralManagementService
 {
@@ -56,6 +57,21 @@ namespace CentralManagementService
         public void StopCentralQueueProcessing()
         {
             throw new NotImplementedException();
+        }
+
+        public void SendBroadcastMessage(BaseMessage message)
+        {
+            if(message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            _logger.Info("Start sending broadcast message from central management server.");
+
+            Message recoverableMessage = new Message(message);
+            recoverableMessage.Formatter = new BinaryMessageFormatter();
+
+            _centralMessageQueue.Send(recoverableMessage);
         }
     }
 }

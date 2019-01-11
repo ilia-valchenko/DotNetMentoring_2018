@@ -1,5 +1,5 @@
 ﻿using CentralManagementServer.Logger;
-using System;
+using System.Threading.Tasks;
 
 namespace ConsoleApplication1
 {
@@ -10,10 +10,15 @@ namespace ConsoleApplication1
             var logger = new Logger();
             var centralService = new CentralManagementService.CentralManagementService(logger);
 
-            centralService.StartCentralQueueProcessing();
+            var centralQueueProcessingTask = Task.Run(() => {
+                centralService.StartCentralQueueProcessing();
+            });
 
-            Console.WriteLine("\n\nTap to continue...");
-            Console.ReadKey();
+            //var task2 = Task.Run(() => {
+            //    DoSomething();
+            //});
+
+            centralQueueProcessingTask.Wait();
         }
     }
 }
