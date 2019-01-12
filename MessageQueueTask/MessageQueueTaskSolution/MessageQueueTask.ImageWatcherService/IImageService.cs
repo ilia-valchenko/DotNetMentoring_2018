@@ -4,5 +4,6 @@
     {
         void StartWatchingImages();
         void StopWatchingImages();
+        void StartListenBroadcastMessagesAsync();
     }
 }

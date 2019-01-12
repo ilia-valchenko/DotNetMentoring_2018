@@ -51,6 +51,7 @@
     <Compile Include="ICentralManagementService.cs" />
     <Compile Include="Messages\BaseMessage.cs" />
     <Compile Include="Messages\NewSettingsMessage.cs" />
+    <Compile Include="Messages\TestMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

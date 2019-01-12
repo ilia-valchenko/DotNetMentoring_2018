@@ -15,7 +15,11 @@ namespace ConsoleApplication1
             var imageService = new ImageService(logger);
             Console.WriteLine("Starting watching images.");
             imageService.StartWatchingImages();
-            Console.WriteLine("Started watching for images.");
+            Console.WriteLine("Has Started watching for images.");
+
+            Console.WriteLine("Start listening broadcast messages.");
+            imageService.StartListenBroadcastMessagesAsync();
+            Console.WriteLine("Has started listening broadcast messages.");
 
             Console.WriteLine("\n\nTap to continue...");
             Console.ReadKey();

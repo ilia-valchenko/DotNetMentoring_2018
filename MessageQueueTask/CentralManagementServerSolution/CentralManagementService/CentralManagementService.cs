@@ -12,7 +12,8 @@ namespace CentralManagementService
         private readonly string _centralQueueName;
         private readonly ILogger _logger;
         private readonly MessageQueue _centralMessageQueue;
-        private int _documentNumber = 0;
+        private readonly MessageQueue _multicastMessageQueue;
+        private int _documentNumber;
 
         /// <summary>
         /// Initialize a new instance of the <see cref="CentralManagementService"/> class.
@@ -20,6 +21,7 @@ namespace CentralManagementService
         public CentralManagementService(ILogger logger)
         {
             _logger = logger;
+            _documentNumber = 0;
             _centralQueueName = ConfigurationManager.AppSettings["centralQueueName"];
 
             if(MessageQueue.Exists(_centralQueueName))
@@ -32,6 +34,11 @@ namespace CentralManagementService
             }
 
             _centralMessageQueue.Formatter = new BinaryMessageFormatter();
+
+            _multicastMessageQueue = new MessageQueue("formatname:multicast=234.1.1.1:8001")
+            {
+                Formatter = new XmlMessageFormatter(new[] {typeof(TestMessage)})
+            };
         }
 
         public void StartCentralQueueProcessing()
@@ -68,10 +75,24 @@ namespace CentralManagementService
 
             _logger.Info("Start sending broadcast message from central management server.");
 
-            Message recoverableMessage = new Message(message);
-            recoverableMessage.Formatter = new BinaryMessageFormatter();
+            Message recoverableMessage = new Message(message)
+            {
+                Formatter = new XmlMessageFormatter(new[] { typeof(TestMessage) })
+            };
 
-            _centralMessageQueue.Send(recoverableMessage);
+            _logger.Info("The message was prepared for sending.");
+            _logger.Info(recoverableMessage.Body.ToString());
+
+            try
+            {
+                _multicastMessageQueue.Send(recoverableMessage);
+
+                _logger.Info("The broadcast message was successfully sent.");
+            }
+            catch (Exception exc)
+            {
+                _logger.Error("The broadcast message was not sent.", exc);
+            }
         }
     }
 }

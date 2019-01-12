@@ -7,6 +7,8 @@ using MessageQueueTask.PdfDocumentService.Extensions;
 using System;
 using System.Configuration;
 using System.IO;
+using System.Messaging;
+using MessageQueueTask.ImageWatcherService.Messages;
 
 namespace MessageQueueTask.ImageWatcherService
 {
@@ -17,12 +19,11 @@ namespace MessageQueueTask.ImageWatcherService
         private readonly ILogger _logger;
         private readonly ICenterQueueClient _centerQueueClient;
         private readonly string _imageFileExtension;
-        private int _numberOfLastImage = 0;
+        private readonly MessageQueue _multicastMessageQueue;
+        private int _numberOfLastImage;
         private Document _doc;
         private bool _isFirstFile = true;
         private bool _isDisposed = false;
-
-        // test
         private MemoryStream _memoryStream;
 
         /// <summary>
@@ -31,13 +32,23 @@ namespace MessageQueueTask.ImageWatcherService
         public ImageService(ILogger logger)
         {
             _logger = logger;
+            _numberOfLastImage = 0;
             _fileService = new FileService.FileService(logger);
             _pdfDocumentService = new PdfDocumentService.PdfDocumentService(logger);
             string centerQueueName = ConfigurationManager.AppSettings["centerQueueName"];
+            string multicastMessageQueueName = ConfigurationManager.AppSettings["multicastMessageQueueName"];
+            string multicastAddress = ConfigurationManager.AppSettings["multicastAddress"];
             _centerQueueClient = new CenterQueueClient<Document>(centerQueueName, logger);
             _imageFileExtension = ConfigurationManager.AppSettings["imageFileExtension"];
             _doc = _pdfDocumentService.CreateNextPdfDocument(ref _memoryStream);
             _doc.Open();
+
+            _multicastMessageQueue = MessageQueue.Exists(multicastMessageQueueName) 
+                ? new MessageQueue(multicastMessageQueueName)
+                : MessageQueue.Create(multicastMessageQueueName, false);
+
+            _multicastMessageQueue.MulticastAddress = multicastAddress;
+            _multicastMessageQueue.Formatter = new XmlMessageFormatter(new[] { typeof(TestMessage) });
         }
 
         public void StartWatchingImages()
@@ -59,7 +70,7 @@ namespace MessageQueueTask.ImageWatcherService
                     NotifyFilters.DirectoryName;
 
                 watcher.Filter = "*" + _imageFileExtension;
-                watcher.Created += new FileSystemEventHandler(OnImageCreatedHandler);
+                watcher.Created += OnImageCreatedHandler;
 
                 // Begin watching.
                 watcher.EnableRaisingEvents = true;
@@ -84,6 +95,39 @@ namespace MessageQueueTask.ImageWatcherService
             }
 
             _logger.Info("PDF document was closed.");
+        }
+
+        public void StartListenBroadcastMessagesAsync()
+        {
+            _multicastMessageQueue.PeekCompleted += QueuePeekCompleted;
+            _multicastMessageQueue.BeginPeek();
+        }
+
+        private void QueuePeekCompleted(object sender, PeekCompletedEventArgs e)
+        {
+            _logger.Info("Start handling PeekCompleted event.");
+
+            try
+            {
+                var message = _multicastMessageQueue.EndPeek(e.AsyncResult);
+
+                _logger.Info($"A broadcast message was received. Message: {((TestMessage)message.Body).Text}");
+            }
+            catch (Exception exc)
+            {
+                _logger.Error("An error occured while peeking broadcast message.", exc);
+            }
+
+            _multicastMessageQueue.Receive();
+            _multicastMessageQueue.BeginPeek();
+        }
+
+        public void Dispose()
+        {
+            if (!_isDisposed)
+            {
+                _memoryStream.Dispose();
+            }
         }
 
         private void OnImageCreatedHandler(object source, FileSystemEventArgs e)
@@ -139,14 +183,6 @@ namespace MessageQueueTask.ImageWatcherService
             catch (Exception exception)
             {
                 _logger.Error($"Error has occured during adding image to a PDF document. Error message: {exception.Message}{Environment.NewLine}StackTrace: {exception.StackTrace}");
-            }
-        }
-
-        public void Dispose()
-        {
-            if (!_isDisposed)
-            {
-                _memoryStream.Dispose();
             }
         }
     }

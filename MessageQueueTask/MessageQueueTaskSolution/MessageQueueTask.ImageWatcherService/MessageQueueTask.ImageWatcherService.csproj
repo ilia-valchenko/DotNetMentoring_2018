@@ -41,6 +41,7 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Messaging" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -51,6 +52,9 @@
   <ItemGroup>
     <Compile Include="IImageService.cs" />
     <Compile Include="ImageService.cs" />
+    <Compile Include="Messages\BaseMessage.cs" />
+    <Compile Include="Messages\NewSettingsMessage.cs" />
+    <Compile Include="Messages\TestMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
