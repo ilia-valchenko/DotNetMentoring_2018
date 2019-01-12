@@ -43,6 +43,7 @@
     <Compile Include="CentralServiceMessages\BaseMessage.cs" />
     <Compile Include="CentralServiceMessages\NewSettingsMessage.cs" />
     <Compile Include="CentralServiceMessages\TestMessage.cs" />
+    <Compile Include="ImageServiceMessages\DocumentWrapperMessage.cs" />
     <Compile Include="ImageServiceMessages\StatusMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

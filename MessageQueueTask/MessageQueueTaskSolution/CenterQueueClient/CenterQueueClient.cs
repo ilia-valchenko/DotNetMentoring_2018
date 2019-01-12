@@ -1,6 +1,8 @@
 ﻿using MessageQueueTask.Logger;
 using System;
+using System.IO;
 using System.Messaging;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace CenterQueueClient
 {
@@ -25,17 +27,21 @@ namespace CenterQueueClient
 
         public void Send(object message)
         {
-            if(message == null)
+            if (message == null)
             {
                 throw new ArgumentNullException(nameof(message));
             }
 
             _logger.Info("Sending message to the central queue.");
 
-            Message recoverableMessage = new Message(message);
-            recoverableMessage.Formatter = new BinaryMessageFormatter();
+            BinaryFormatter binaryFormatter = new BinaryFormatter();
 
-            _messageQueue.Send(recoverableMessage, _nameOfCentralQueue);
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                binaryFormatter.Serialize(memoryStream, message);
+                var binaryMessage = memoryStream.ToArray();
+                _messageQueue.Send(binaryMessage);
+            }
         }
     }
 }

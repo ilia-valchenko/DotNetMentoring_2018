@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Messaging;
-using System.Runtime.Serialization.Formatters.Binary;
 using MessageQueueTask.Core;
 using MessageQueueTask.MessagesLibrary.ImageServiceMessages;
 using MessageQueueTask.MessagesLibrary.CentralServiceMessages;
@@ -141,16 +140,8 @@ namespace MessageQueueTask.ImageWatcherService
 
             try
             {
-                BinaryFormatter binaryFormatter = new BinaryFormatter();
-
-                using (MemoryStream memoryStream = new MemoryStream())
-                {
-                    binaryFormatter.Serialize(memoryStream, currentStatusMessage);
-                    var binaryMessage = memoryStream.ToArray();
-                    _centerQueueClient.Send(binaryMessage);
-
-                    _logger.Info("The current status was successfully sent to the cental service.");
-                }
+                _centerQueueClient.Send(currentStatusMessage);
+                _logger.Info("The current status was successfully sent to the cental service.");
             }
             catch (Exception exc)
             {
@@ -219,8 +210,12 @@ namespace MessageQueueTask.ImageWatcherService
                     _doc.Close();
                     _currentActions.Pop();
 
-                    byte[] result = _memoryStream.ToArray();
-                    _centerQueueClient.Send(result);
+                    var documentWrapperMessage = new DocumentWrapperMessage
+                    {
+                        ITextSharpDocumentBytes = _memoryStream.ToArray()
+                    };
+
+                    _centerQueueClient.Send(documentWrapperMessage);
 
                     _currentActions.Push(ImageServiceActions.CreateNewDocument);
                     _doc = _pdfDocumentService.CreateNextPdfDocument(ref _memoryStream);
