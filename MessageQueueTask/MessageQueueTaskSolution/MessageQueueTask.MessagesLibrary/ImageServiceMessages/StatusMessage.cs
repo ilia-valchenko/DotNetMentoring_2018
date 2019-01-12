@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MessageQueueTask.ImageWatcherService.Messages
+namespace MessageQueueTask.MessagesLibrary.ImageServiceMessages
 {
     /// <summary>
     /// This message contains current status of the image service.
@@ -16,7 +16,6 @@ namespace MessageQueueTask.ImageWatcherService.Messages
         /// </summary>
         public StatusMessage()
         {
-            
         }
     }
 }

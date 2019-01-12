@@ -1,4 +1,4 @@
-﻿namespace MessageQueueTask.ImageWatcherService.Messages
+﻿namespace MessageQueueTask.MessagesLibrary.CentralServiceMessages
 {
     public class TestMessage : BaseMessage
     {

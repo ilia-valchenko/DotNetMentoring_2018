@@ -1,15 +1,11 @@
 ﻿using CentralManagementServer.Logger;
 using System;
-using System.Collections;
 using System.Configuration;
 using System.Messaging;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
-using CentralManagementService.Messages;
-using MessageQueueTask.ImageWatcherService;
-using MessageQueueTask.ImageWatcherService.Messages;
-using BaseMessage = CentralManagementService.Messages.BaseMessage;
-using TestMessage = CentralManagementService.Messages.TestMessage;
+using MessageQueueTask.MessagesLibrary.CentralServiceMessages;
+using MessageQueueTask.MessagesLibrary.ImageServiceMessages;
 
 namespace CentralManagementService
 {
@@ -57,6 +53,10 @@ namespace CentralManagementService
             {
                 var message = _centralMessageQueue.Receive();
 
+                bool canCastToStatusMessageType = false;
+                bool canCastToDocumentType = false;
+                object deserializedObject2 = null;
+
                 try
                 {
                     BinaryFormatter binaryFormatter = new BinaryFormatter();
@@ -64,9 +64,14 @@ namespace CentralManagementService
 
                     // TODO: I need to move all messages to separate assembly.
 
+
+
                     using (MemoryStream memoryStream = new MemoryStream((byte[])message.Body))
                     {
-                        object deserializedObject2 = binaryFormatter.Deserialize(memoryStream);
+                        deserializedObject2 = binaryFormatter.Deserialize(memoryStream);
+                        canCastToStatusMessageType = deserializedObject2 is StatusMessage;
+                        canCastToDocumentType = deserializedObject2 is iTextSharp.text.Document;
+                        int i = 0;
                     }
                 }
                 catch (Exception exc)
@@ -74,11 +79,31 @@ namespace CentralManagementService
                     _logger.Error("An error has occured during deserialization of binary message from central queue.", exc);
                 }
 
-                File.WriteAllBytes(
-                    Path.Combine(
-                        AppDomain.CurrentDomain.BaseDirectory,
-                        "ResultPdfDocument" + (++_documentNumber).ToString() + ".pdf"),
-                    (byte[])message.Body);
+                //File.WriteAllBytes(
+                //    Path.Combine(
+                //        AppDomain.CurrentDomain.BaseDirectory,
+                //        "ResultPdfDocument" + (++_documentNumber).ToString() + ".pdf"),
+                //    (byte[])message.Body);
+
+                if(canCastToDocumentType)
+                {
+                    _logger.Info("Start saving document as a PDF document.");
+
+                    File.WriteAllBytes(
+                        Path.Combine(
+                            AppDomain.CurrentDomain.BaseDirectory,
+                            "ResultPdfDocument" + (++_documentNumber).ToString() + ".pdf"),
+                        (byte[])message.Body);
+                }
+
+                if(canCastToStatusMessageType)
+                {
+                    var statusMessage = (StatusMessage)deserializedObject2;
+
+                    _logger.Info($"The status message was received. Action: {statusMessage.Action}; FakeSettingsValue: {statusMessage.FakeSettingsValue}.");
+
+                    Console.WriteLine($"\nAction = {statusMessage.Action}\nFakeSettingsValue = {statusMessage.FakeSettingsValue}");
+                }
 
                 Console.WriteLine(message.Body.ToString());
             }

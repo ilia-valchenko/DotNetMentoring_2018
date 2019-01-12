@@ -53,10 +53,6 @@
     <Compile Include="IImageService.cs" />
     <Compile Include="ImageService.cs" />
     <Compile Include="ImageServiceActions.cs" />
-    <Compile Include="Messages\CentralServiceMessages\BaseMessage.cs" />
-    <Compile Include="Messages\CentralServiceMessages\NewSettingsMessage.cs" />
-    <Compile Include="Messages\CentralServiceMessages\TestMessage.cs" />
-    <Compile Include="Messages\StatusMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -79,11 +75,16 @@
       <Project>{ce052824-3ec6-45c7-95b7-0fea37c06237}</Project>
       <Name>MessageQueueTask.Logger</Name>
     </ProjectReference>
+    <ProjectReference Include="..\MessageQueueTask.MessagesLibrary\MessageQueueTask.MessagesLibrary.csproj">
+      <Project>{fff42f86-feb0-4c0c-b3b3-ea51f6ec10c2}</Project>
+      <Name>MessageQueueTask.MessagesLibrary</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MessageQueueTask.PdfDocumentService\MessageQueueTask.PdfDocumentService.csproj">
       <Project>{13a36f86-0009-4b41-83d4-463136d4eb24}</Project>
       <Name>MessageQueueTask.PdfDocumentService</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -1,7 +1,7 @@
 ﻿using System;
 using CentralManagementServer.Logger;
 using System.Threading.Tasks;
-using CentralManagementService.Messages;
+using MessageQueueTask.MessagesLibrary.CentralServiceMessages;
 
 namespace ConsoleApplication1
 {

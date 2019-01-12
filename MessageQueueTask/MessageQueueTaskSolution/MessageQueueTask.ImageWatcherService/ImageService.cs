@@ -10,9 +10,10 @@ using System.Configuration;
 using System.IO;
 using System.Messaging;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading.Tasks;
 using MessageQueueTask.Core;
-using MessageQueueTask.ImageWatcherService.Messages;
+using MessageQueueTask.MessagesLibrary.ImageServiceMessages;
+using MessageQueueTask.MessagesLibrary.CentralServiceMessages;
+using System.Threading;
 
 namespace MessageQueueTask.ImageWatcherService
 {
@@ -33,6 +34,7 @@ namespace MessageQueueTask.ImageWatcherService
         private Stack<ImageServiceActions> _currentActions;
         private readonly TimeSpan _startSendCurrentStatusTimeSpan;
         private readonly TimeSpan _periodSendCurrentStatusTimeSpan;
+        private Timer _timer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImageService"/> class.
@@ -119,14 +121,9 @@ namespace MessageQueueTask.ImageWatcherService
             _multicastMessageQueue.BeginPeek();
         }
 
-        public /*Task*/ void StartSendingCurrentStatusToCentralService()
+        public void StartSendingCurrentStatusToCentralService()
         {
-            //return Task.Run(() =>
-            //{
-            //    // take interval from config 
-            //});
-
-            var timer = new System.Threading.Timer(e =>
+            _timer = new Timer(e =>
             {
                 SendCurrentStatus();
             }, null, _startSendCurrentStatusTimeSpan, _periodSendCurrentStatusTimeSpan);

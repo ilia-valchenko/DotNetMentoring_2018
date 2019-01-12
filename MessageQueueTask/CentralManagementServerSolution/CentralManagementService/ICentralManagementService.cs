@@ -1,4 +1,4 @@
-﻿using CentralManagementService.Messages;
+﻿using MessageQueueTask.MessagesLibrary.CentralServiceMessages;
 
 namespace CentralManagementService
 {

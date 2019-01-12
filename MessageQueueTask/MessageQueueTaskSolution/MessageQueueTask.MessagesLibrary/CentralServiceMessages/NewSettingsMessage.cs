@@ -1,4 +1,4 @@
-﻿namespace CentralManagementService.Messages
+﻿namespace MessageQueueTask.MessagesLibrary.CentralServiceMessages
 {
     public class NewSettingsMessage : BaseMessage
     {
