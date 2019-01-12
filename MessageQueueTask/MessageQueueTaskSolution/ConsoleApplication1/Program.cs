@@ -13,13 +13,17 @@ namespace ConsoleApplication1
             ILogger logger = new Logger();
 
             var imageService = new ImageService(logger);
-            Console.WriteLine("Starting watching images.");
+            Console.WriteLine("\nStarting watching images.");
             imageService.StartWatchingImages();
             Console.WriteLine("Has Started watching for images.");
 
-            Console.WriteLine("Start listening broadcast messages.");
+            Console.WriteLine("\nStart listening broadcast messages.");
             imageService.StartListenBroadcastMessagesAsync();
             Console.WriteLine("Has started listening broadcast messages.");
+
+            Console.WriteLine("\nStart sending current status to the central service.");
+            imageService.StartSendingCurrentStatusToCentralService();
+            Console.WriteLine("Has started sending current status to the central service.");
 
             Console.WriteLine("\n\nTap to continue...");
             Console.ReadKey();

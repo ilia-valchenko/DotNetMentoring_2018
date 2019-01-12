@@ -52,9 +52,11 @@
   <ItemGroup>
     <Compile Include="IImageService.cs" />
     <Compile Include="ImageService.cs" />
-    <Compile Include="Messages\BaseMessage.cs" />
-    <Compile Include="Messages\NewSettingsMessage.cs" />
-    <Compile Include="Messages\TestMessage.cs" />
+    <Compile Include="ImageServiceActions.cs" />
+    <Compile Include="Messages\CentralServiceMessages\BaseMessage.cs" />
+    <Compile Include="Messages\CentralServiceMessages\NewSettingsMessage.cs" />
+    <Compile Include="Messages\CentralServiceMessages\TestMessage.cs" />
+    <Compile Include="Messages\StatusMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -64,6 +66,10 @@
     <ProjectReference Include="..\CenterQueueClient\CenterQueueClient.csproj">
       <Project>{221b2b7b-1de9-41b1-bcd2-29a74dc5ea57}</Project>
       <Name>CenterQueueClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MessageQueueTask.Core\MessageQueueTask.Core.csproj">
+      <Project>{5778e755-08b9-48eb-ae58-e899cbd1e9b7}</Project>
+      <Name>MessageQueueTask.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\MessageQueueTask.FileService\MessageQueueTask.FileService.csproj">
       <Project>{EFCB9A54-DBB6-4D05-B301-42BF51D8523F}</Project>

@@ -1,9 +1,15 @@
 ﻿using CentralManagementServer.Logger;
 using System;
+using System.Collections;
 using System.Configuration;
 using System.Messaging;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using CentralManagementService.Messages;
+using MessageQueueTask.ImageWatcherService;
+using MessageQueueTask.ImageWatcherService.Messages;
+using BaseMessage = CentralManagementService.Messages.BaseMessage;
+using TestMessage = CentralManagementService.Messages.TestMessage;
 
 namespace CentralManagementService
 {
@@ -37,7 +43,7 @@ namespace CentralManagementService
 
             _multicastMessageQueue = new MessageQueue("formatname:multicast=234.1.1.1:8001")
             {
-                Formatter = new XmlMessageFormatter(new[] {typeof(TestMessage)})
+                //Formatter = new XmlMessageFormatter(new[] {typeof(CentralManagementService.Messages.TestMessage) })
             };
         }
 
@@ -50,6 +56,23 @@ namespace CentralManagementService
             while (true)
             {
                 var message = _centralMessageQueue.Receive();
+
+                try
+                {
+                    BinaryFormatter binaryFormatter = new BinaryFormatter();
+                    //var deserializedObject1 = binaryFormatter.Deserialize(message.BodyStream);
+
+                    // TODO: I need to move all messages to separate assembly.
+
+                    using (MemoryStream memoryStream = new MemoryStream((byte[])message.Body))
+                    {
+                        object deserializedObject2 = binaryFormatter.Deserialize(memoryStream);
+                    }
+                }
+                catch (Exception exc)
+                {
+                    _logger.Error("An error has occured during deserialization of binary message from central queue.", exc);
+                }
 
                 File.WriteAllBytes(
                     Path.Combine(

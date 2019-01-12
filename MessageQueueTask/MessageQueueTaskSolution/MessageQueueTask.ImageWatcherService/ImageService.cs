@@ -5,9 +5,13 @@ using MessageQueueTask.Logger;
 using MessageQueueTask.PdfDocumentService;
 using MessageQueueTask.PdfDocumentService.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Messaging;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading.Tasks;
+using MessageQueueTask.Core;
 using MessageQueueTask.ImageWatcherService.Messages;
 
 namespace MessageQueueTask.ImageWatcherService
@@ -25,6 +29,10 @@ namespace MessageQueueTask.ImageWatcherService
         private bool _isFirstFile = true;
         private bool _isDisposed = false;
         private MemoryStream _memoryStream;
+        private string _fakeSettingsValue;
+        private Stack<ImageServiceActions> _currentActions;
+        private readonly TimeSpan _startSendCurrentStatusTimeSpan;
+        private readonly TimeSpan _periodSendCurrentStatusTimeSpan;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImageService"/> class.
@@ -35,12 +43,19 @@ namespace MessageQueueTask.ImageWatcherService
             _numberOfLastImage = 0;
             _fileService = new FileService.FileService(logger);
             _pdfDocumentService = new PdfDocumentService.PdfDocumentService(logger);
+            _fakeSettingsValue = "InitialFakeSettingsValue";
             string centerQueueName = ConfigurationManager.AppSettings["centerQueueName"];
             string multicastMessageQueueName = ConfigurationManager.AppSettings["multicastMessageQueueName"];
             string multicastAddress = ConfigurationManager.AppSettings["multicastAddress"];
             _centerQueueClient = new CenterQueueClient<Document>(centerQueueName, logger);
             _imageFileExtension = ConfigurationManager.AppSettings["imageFileExtension"];
+            _startSendCurrentStatusTimeSpan = TimeSpan.Zero;
+            _periodSendCurrentStatusTimeSpan = 
+                TimeSpan.FromMilliseconds(Int32.Parse(ConfigurationManager.AppSettings["sendCurrentStatusTimer"]));
+            _currentActions = new Stack<ImageServiceActions>();
+            _currentActions.Push(ImageServiceActions.CreateNewDocument);
             _doc = _pdfDocumentService.CreateNextPdfDocument(ref _memoryStream);
+            _currentActions.Pop();
             _doc.Open();
 
             _multicastMessageQueue = MessageQueue.Exists(multicastMessageQueueName) 
@@ -54,6 +69,7 @@ namespace MessageQueueTask.ImageWatcherService
         public void StartWatchingImages()
         {
             _logger.Info("ImageService started watching images.");
+            _currentActions.Push(ImageServiceActions.WatchingForImages);
 
             try
             {
@@ -103,9 +119,60 @@ namespace MessageQueueTask.ImageWatcherService
             _multicastMessageQueue.BeginPeek();
         }
 
+        public /*Task*/ void StartSendingCurrentStatusToCentralService()
+        {
+            //return Task.Run(() =>
+            //{
+            //    // take interval from config 
+            //});
+
+            var timer = new System.Threading.Timer(e =>
+            {
+                SendCurrentStatus();
+            }, null, _startSendCurrentStatusTimeSpan, _periodSendCurrentStatusTimeSpan);
+        }
+
+        private void SendCurrentStatus()
+        {
+            _logger.Info("Start sending current status to the central service.");
+
+            var currentStatusMessage = new StatusMessage
+            {
+                Action = TextAttribute.GetValueFromEnum(_currentActions.Peek()),
+                FakeSettingsValue = _fakeSettingsValue
+            };
+
+            try
+            {
+                BinaryFormatter binaryFormatter = new BinaryFormatter();
+
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    binaryFormatter.Serialize(memoryStream, currentStatusMessage);
+                    var binaryMessage = memoryStream.ToArray();
+                    _centerQueueClient.Send(binaryMessage);
+
+                    _logger.Info("The current status was successfully sent to the cental service.");
+                }
+            }
+            catch (Exception exc)
+            {
+                _logger.Error("The current status was not sent to the central service.", exc);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!_isDisposed)
+            {
+                _memoryStream.Dispose();
+            }
+        }
+
         private void QueuePeekCompleted(object sender, PeekCompletedEventArgs e)
         {
             _logger.Info("Start handling PeekCompleted event.");
+            _currentActions.Push(ImageServiceActions.ReadBroadcastMessage);
 
             try
             {
@@ -120,19 +187,14 @@ namespace MessageQueueTask.ImageWatcherService
 
             _multicastMessageQueue.Receive();
             _multicastMessageQueue.BeginPeek();
-        }
 
-        public void Dispose()
-        {
-            if (!_isDisposed)
-            {
-                _memoryStream.Dispose();
-            }
+            _currentActions.Pop();
         }
 
         private void OnImageCreatedHandler(object source, FileSystemEventArgs e)
         {
             _logger.Info($"ImageService discovered a new file. File: {e.FullPath} {e.ChangeType}{Environment.NewLine}");
+            _currentActions.Push(ImageServiceActions.AddImageToDocument);
 
             try
             {
@@ -142,7 +204,9 @@ namespace MessageQueueTask.ImageWatcherService
                 // which is why you are getting that error message. Basically, you need to
                 // wait your turn. Take the event and then have a utility watch that file
                 // until it is free for reading.
+                _currentActions.Push(ImageServiceActions.WaitUntilFileIsReleased);
                 _fileService.WaitUntilFileIsReleased(e.FullPath);
+                _currentActions.Pop();
 
                 int numberOfCurrentImage = _fileService.ExtractNumberFromFileName(e.Name);
 
@@ -154,12 +218,16 @@ namespace MessageQueueTask.ImageWatcherService
                 }
                 else if (_numberOfLastImage + 1 != numberOfCurrentImage)
                 {
+                    _currentActions.Push(ImageServiceActions.CloseDocument);
                     _doc.Close();
+                    _currentActions.Pop();
 
                     byte[] result = _memoryStream.ToArray();
                     _centerQueueClient.Send(result);
 
+                    _currentActions.Push(ImageServiceActions.CreateNewDocument);
                     _doc = _pdfDocumentService.CreateNextPdfDocument(ref _memoryStream);
+                    _currentActions.Pop();
                     _doc.Open();
                 }
 
@@ -173,17 +241,23 @@ namespace MessageQueueTask.ImageWatcherService
                 _logger.Error($"Error message: {ioException.Message}{Environment.NewLine}StackTrace: {ioException.StackTrace}");
                 _logger.Error($"The file {e.Name} will be moved to a separate folder.");
 
+                _currentActions.Push(ImageServiceActions.MoveBadImageToFolder);
+
                 _fileService.MoveFileToFolder(
                     e.Name,
                     e.FullPath,
                     Path.Combine(
                         AppDomain.CurrentDomain.BaseDirectory,
                         ConfigurationManager.AppSettings["notLoadedImagesFolderName"]));
+
+                _currentActions.Pop();
             }
             catch (Exception exception)
             {
                 _logger.Error($"Error has occured during adding image to a PDF document. Error message: {exception.Message}{Environment.NewLine}StackTrace: {exception.StackTrace}");
             }
+
+            _currentActions.Pop();
         }
     }
 }

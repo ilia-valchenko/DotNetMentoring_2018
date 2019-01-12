@@ -1,4 +1,5 @@
 ﻿using CentralManagementService.Messages;
+
 namespace CentralManagementService
 {
     public interface ICentralManagementService
