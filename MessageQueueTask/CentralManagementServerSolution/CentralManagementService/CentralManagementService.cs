@@ -15,6 +15,7 @@ namespace CentralManagementService
         private readonly ILogger _logger;
         private readonly MessageQueue _centralMessageQueue;
         private readonly MessageQueue _multicastMessageQueue;
+        private readonly string _resultPdfDocumentName;
         private int _documentNumber;
 
         /// <summary>
@@ -24,9 +25,11 @@ namespace CentralManagementService
         {
             _logger = logger;
             _documentNumber = 0;
-            _centralQueueName = ConfigurationManager.AppSettings["centralQueueName"];
+            _centralQueueName = ConfigurationManager.AppSettings["CentralQueueName"];
+            _resultPdfDocumentName = ConfigurationManager.AppSettings["ResultPdfDocumentName"];
+            string multicastMessageQueueName = ConfigurationManager.AppSettings["MulticastMessageQueueName"];
 
-            if(MessageQueue.Exists(_centralQueueName))
+            if (MessageQueue.Exists(_centralQueueName))
             {
                 _centralMessageQueue = new MessageQueue(_centralQueueName);
             }
@@ -36,14 +39,12 @@ namespace CentralManagementService
             }
 
             _centralMessageQueue.Formatter = new BinaryMessageFormatter();
-            _multicastMessageQueue = new MessageQueue("formatname:multicast=234.1.1.1:8001");
+            _multicastMessageQueue = new MessageQueue(multicastMessageQueueName);
         }
 
         public void StartCentralQueueProcessing()
         {
             _logger.Info("CentralManagementService started processing central queue.");
-
-            Console.WriteLine("Started print messages from central queue:");
 
             while (true)
             {
@@ -74,20 +75,18 @@ namespace CentralManagementService
                     File.WriteAllBytes(
                         Path.Combine(
                             AppDomain.CurrentDomain.BaseDirectory,
-                            "ResultPdfDocument" + (++_documentNumber).ToString() + ".pdf"),
+                            _resultPdfDocumentName + (++_documentNumber).ToString() + ".pdf"),
                         documentWrapper.ITextSharpDocumentBytes);
+
+                    _logger.Info($"The {_resultPdfDocumentName + (++_documentNumber).ToString() + ".pdf"} was saved on the disk.");
                 }
 
                 if(deserializedObject is StatusMessage)
                 {
                     var statusMessage = (StatusMessage)deserializedObject;
 
-                    _logger.Info($"The status message was received. Action: {statusMessage.Action}; FakeSettingsValue: {statusMessage.FakeSettingsValue}.");
-
-                    Console.WriteLine($"\nAction = {statusMessage.Action}\nFakeSettingsValue = {statusMessage.FakeSettingsValue}");
+                    _logger.Info($"The status message was received. ServiceName: {statusMessage.ServiceName}; Action: {statusMessage.Action}; FakeSettingsValue: {statusMessage.FakeSettingsValue}.");
                 }
-
-                Console.WriteLine(message.Body.ToString());
             }
         }
 
@@ -107,7 +106,7 @@ namespace CentralManagementService
 
             Message recoverableMessage = new Message(message)
             {
-                Formatter = new XmlMessageFormatter(new[] { typeof(TestMessage) })
+                Formatter = new XmlMessageFormatter(new[] { typeof(BaseMessage) })
             };
 
             _logger.Info("The message was prepared for sending.");

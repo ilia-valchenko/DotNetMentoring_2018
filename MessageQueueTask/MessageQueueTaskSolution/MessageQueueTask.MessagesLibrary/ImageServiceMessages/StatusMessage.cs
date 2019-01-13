@@ -8,6 +8,7 @@ namespace MessageQueueTask.MessagesLibrary.ImageServiceMessages
     [Serializable]
     public class StatusMessage
     {
+        public string ServiceName { get; set; }
         public string Action { get; set; }
         public string FakeSettingsValue { get; set; }
 

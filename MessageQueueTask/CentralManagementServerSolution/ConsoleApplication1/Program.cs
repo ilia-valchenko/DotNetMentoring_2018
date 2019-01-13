@@ -23,9 +23,9 @@ namespace ConsoleApplication1
             Console.WriteLine("Has started processing central queue.");
             Console.WriteLine("Start waiting for inputing broadcast messages.");
 
-            var task2 = Task.Run(() =>
+            Task.Run(() =>
             {
-                DoSomething();
+                StartSendingBroadcastMessages();
             });
 
             Console.WriteLine("has started waiting for inputing broadcast messages.");
@@ -33,16 +33,36 @@ namespace ConsoleApplication1
             centralQueueProcessingTask.Wait();
         }
 
-        private static void DoSomething()
+        private static void StartSendingBroadcastMessages()
         {
             while (true)
             {
+                Console.WriteLine("Chose command:\n1. Send broadcast message\n2. Exit");
+
                 var consoleLine = Console.ReadLine();
 
-                _centralService.SendBroadcastMessage(new TestMessage
+                switch(consoleLine)
                 {
-                    Text = consoleLine
-                });
+                    case "1":
+                        Console.WriteLine("Enter the value of the fake settings:");
+
+                        var fakeSettingsValue = Console.ReadLine();
+
+                        _centralService.SendBroadcastMessage(new TestMessage
+                        {
+                            Text = fakeSettingsValue
+                        });
+
+                        break;
+
+                    case "2":
+                        Environment.Exit(0);
+                        break;
+
+                    default:
+                        Console.WriteLine("Unknown command.");
+                        break;
+                }
             }
         }
     }

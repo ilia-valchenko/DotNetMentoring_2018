@@ -34,6 +34,7 @@ namespace MessageQueueTask.ImageWatcherService
         private readonly TimeSpan _startSendCurrentStatusTimeSpan;
         private readonly TimeSpan _periodSendCurrentStatusTimeSpan;
         private Timer _timer;
+        private readonly string _serviceName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImageService"/> class.
@@ -48,6 +49,7 @@ namespace MessageQueueTask.ImageWatcherService
             string centerQueueName = ConfigurationManager.AppSettings["centerQueueName"];
             string multicastMessageQueueName = ConfigurationManager.AppSettings["multicastMessageQueueName"];
             string multicastAddress = ConfigurationManager.AppSettings["multicastAddress"];
+            _serviceName = ConfigurationManager.AppSettings["ServiceName"];
             _centerQueueClient = new CenterQueueClient<Document>(centerQueueName, logger);
             _imageFileExtension = ConfigurationManager.AppSettings["imageFileExtension"];
             _startSendCurrentStatusTimeSpan = TimeSpan.Zero;
@@ -134,6 +136,7 @@ namespace MessageQueueTask.ImageWatcherService
 
             var currentStatusMessage = new StatusMessage
             {
+                ServiceName = _serviceName,
                 Action = TextAttribute.GetValueFromEnum(_currentActions.Peek()),
                 FakeSettingsValue = _fakeSettingsValue
             };
@@ -165,8 +168,11 @@ namespace MessageQueueTask.ImageWatcherService
             try
             {
                 var message = _multicastMessageQueue.EndPeek(e.AsyncResult);
+                var testMessage = (TestMessage)message.Body;
 
-                _logger.Info($"A broadcast message was received. Message: {((TestMessage)message.Body).Text}");
+                _logger.Info($"A broadcast message was received. Message: {testMessage.Text}");
+
+                _fakeSettingsValue = testMessage.Text;
             }
             catch (Exception exc)
             {
